@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "echo 'Skipping build - using GitHub Actions for deployment'",
+  "buildCommand": "mkdir -p build/web && echo 'Build directory created - using GitHub Actions for actual build'",
   "outputDirectory": "build/web",
   "installCommand": "echo 'No installation needed'",
   "rewrites": [
