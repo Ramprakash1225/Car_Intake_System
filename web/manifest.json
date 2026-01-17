@@ -1,0 +1,24 @@
+{
+    "name": "Aathiksh AutoMart",
+    "short_name": "Aathiksh AutoMart",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#1E3A8A",
+    "theme_color": "#1E3A8A",
+    "description": "Aathiksh AutoMart - The Precision of Pre-Owned - AI-Powered Car Intake System",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
+

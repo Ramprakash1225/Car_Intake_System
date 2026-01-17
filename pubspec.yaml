@@ -1,0 +1,69 @@
+name: ai_car_intake
+description: AI-Powered Car Intake System for Small Pre-Owned Car Dealers
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI & Navigation
+  cupertino_icons: ^1.0.6
+  go_router: ^13.0.0
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # HTTP & API
+  http: ^1.1.2
+  dio: ^5.4.0
+  
+  # Image Handling
+  image_picker: ^1.0.7
+  file_picker: ^8.1.4
+  
+  # Storage
+  shared_preferences: ^2.2.2
+  
+  # Crypto (for hashing)
+  crypto: ^3.0.3
+  
+  # Environment Variables
+  flutter_dotenv: ^5.1.0
+  
+  # Google AI
+  google_generative_ai: ^0.2.2
+  
+  # Icons
+  flutter_svg: ^2.0.9
+  font_awesome_flutter: ^10.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/logos/
+    - assets/fallback/
+    - .env
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/logos/aathiksh_logo.jpeg"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logos/aathiksh_logo.jpeg"
+
