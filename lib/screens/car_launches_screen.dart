@@ -373,89 +373,141 @@ class _CarLaunchCard extends StatelessWidget {
           if (imageUrl.isNotEmpty)
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
-                ),
+              ),
                 child: FeatureImage(
                   imageUrl: imageUrl,
                   fallbackAsset: ImageHelper.carLaunchesFallback,
-                  width: double.infinity,
+                width: double.infinity,
                   height: double.infinity,
-                ),
-              ),
+                      ),
+                    ),
             ),
           // Content - Half width
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(
-                  MediaQuery.of(context).size.width < 768 ? 16 : 20),
+            padding: EdgeInsets.all(
+                MediaQuery.of(context).size.width < 768 ? 16 : 20),
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header: Brand | Model | Country
-                    Text(
-                      '### ${car['brand']} | ${car['model']} | ${car['primaryCountry']}',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Brand | Model | Country
+                Text(
+                  '### ${car['brand']} | ${car['model']} | ${car['primaryCountry']}',
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 768 ? 18 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade900,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Overview (2 crisp lines)
+                Text(
+                  LanguageHelper.getAIContent(context, car, 'overview'),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade700,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Key Data Points
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _DataPoint(
+                        label: Provider.of<LanguageProvider>(context)
+                            .translate('Launch Date:', 'வெளியீட்டு தேதி:'),
+                        value: car['launchDate']?.toString() ?? 'N/A',
+                      ),
+                      const SizedBox(height: 8),
+                      _DataPoint(
+                        label: Provider.of<LanguageProvider>(context).translate(
+                            'Sales Status (Best Seller):',
+                            'விற்பனை நிலை (Best Seller):'),
+                        value: car['bestSellerStatus']?.toString() ?? 'No',
+                      ),
+                      const SizedBox(height: 8),
+                      _DataPoint(
+                        label: Provider.of<LanguageProvider>(context).translate(
+                            'Popular Country:', 'அதிகம் விரும்பப்படும் நாடு:'),
+                        value: car['popularCountry']?.toString() ?? 'N/A',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Read More Button
+                if (!isExpanded)
+                  TextButton.icon(
+                    onPressed: onToggle,
+                    icon: const Icon(Icons.arrow_downward, size: 18),
+                    label: Text(
+                      Provider.of<LanguageProvider>(context)
+                          .translate('Read More', 'மேலும் படிக்க'),
                       style: TextStyle(
-                        fontSize: MediaQuery.of(context).size.width < 768 ? 18 : 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade900,
-                        height: 1.3,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue.shade700,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Overview (2 crisp lines)
-                    Text(
-                      LanguageHelper.getAIContent(context, car, 'overview'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                        height: 1.6,
-                      ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                     ),
-                    const SizedBox(height: 16),
-                    // Key Data Points
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Detailed Insight (6 lines)
+                      Text(
+                        LanguageHelper.getAIContent(
+                            context, car, 'detailedInsight'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade800,
+                          height: 1.7,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _DataPoint(
-                            label: Provider.of<LanguageProvider>(context)
-                                .translate('Launch Date:', 'வெளியீட்டு தேதி:'),
-                            value: car['launchDate']?.toString() ?? 'N/A',
+                      const SizedBox(height: 16),
+                      // Context Label
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          '[${LanguageHelper.getAIContent(context, car, 'contextLabel')}]',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                            fontStyle: FontStyle.italic,
                           ),
-                          const SizedBox(height: 8),
-                          _DataPoint(
-                            label: Provider.of<LanguageProvider>(context).translate(
-                                'Sales Status (Best Seller):',
-                                'விற்பனை நிலை (Best Seller):'),
-                            value: car['bestSellerStatus']?.toString() ?? 'No',
-                          ),
-                          const SizedBox(height: 8),
-                          _DataPoint(
-                            label: Provider.of<LanguageProvider>(context).translate(
-                                'Popular Country:', 'அதிகம் விரும்பப்படும் நாடு:'),
-                            value: car['popularCountry']?.toString() ?? 'N/A',
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Read More Button
-                    if (!isExpanded)
+                      const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: onToggle,
-                        icon: const Icon(Icons.arrow_downward, size: 18),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
                         label: Text(
                           Provider.of<LanguageProvider>(context)
-                              .translate('Read More', 'மேலும் படிக்க'),
+                              .translate('Read Less', 'குறைவாக படிக்க'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -466,62 +518,10 @@ class _CarLaunchCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                         ),
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Detailed Insight (6 lines)
-                          Text(
-                            LanguageHelper.getAIContent(
-                                context, car, 'detailedInsight'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey.shade800,
-                              height: 1.7,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Context Label
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Text(
-                              '[${LanguageHelper.getAIContent(context, car, 'contextLabel')}]',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextButton.icon(
-                            onPressed: onToggle,
-                            icon: const Icon(Icons.arrow_upward, size: 18),
-                            label: Text(
-                              Provider.of<LanguageProvider>(context)
-                                  .translate('Read Less', 'குறைவாக படிக்க'),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                            ),
-                          ),
-                        ],
                       ),
-                  ],
+                    ],
+                  ),
+              ],
                 ),
               ),
             ),

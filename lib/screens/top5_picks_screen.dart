@@ -420,14 +420,14 @@ class _PickCard extends StatelessWidget {
           // Image - Half width
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
-              ),
+            ),
               child: FeatureImage(
                 imageUrl: imageUrl,
                 fallbackAsset: ImageHelper.top5PicksFallback,
-                width: double.infinity,
+              width: double.infinity,
                 height: double.infinity,
               ),
             ),
@@ -435,8 +435,8 @@ class _PickCard extends StatelessWidget {
           // Content - Half width
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(isMobile ? 16 : 20),
-              child: Column(
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Rank & Title: ### #[Rank] Brand Model | Segment
@@ -679,8 +679,8 @@ class _PickCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  ),
-                ],
+                ),
+              ],
               ),
             ),
           ),

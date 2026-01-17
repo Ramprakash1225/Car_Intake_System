@@ -256,38 +256,38 @@ class CarDetailsScreen extends StatelessWidget {
                             height: MediaQuery.of(context).size.width < 768
                                 ? 200
                                 : 350,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
-                                  blurRadius: 10,
-                                  spreadRadius: 2,
-                                  offset: const Offset(0, 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.memory(
+                          car.imageBytes!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey.shade200,
+                              child: Center(
+                                child: Icon(
+                                  Icons.directions_car_outlined,
+                                  size: 64,
+                                  color: Colors.grey.shade400,
                                 ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: Image.memory(
-                                car.imageBytes!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey.shade200,
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.directions_car_outlined,
-                                        size: 64,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                    ),
-                                  );
-                                },
                               ),
-                            ),
+                            );
+                          },
+                        ),
+                      ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -604,12 +604,12 @@ class CarDetailsScreen extends StatelessWidget {
                           ),
                           value:
                               '${car.odometerReading.toString().replaceAllMapped(
-                                    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                                    (Match m) => '${m[1]},',
-                                  )} km',
+                            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                            (Match m) => '${m[1]},',
+                          )} km',
                         ),
                       ];
-
+                      
                       return isMobile
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -717,20 +717,20 @@ void _showDeleteDialog(BuildContext context, Car car, CarProvider carProvider,
 
               // Navigate to inventory screen
               if (context.mounted) {
-                context.go('/inventory');
+              context.go('/inventory');
 
                 // Show success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      languageProvider.translate(
-                        'Car deleted successfully',
-                        'கார் வெற்றிகரமாக நீக்கப்பட்டது',
-                      ),
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    languageProvider.translate(
+                      'Car deleted successfully',
+                      'கார் வெற்றிகரமாக நீக்கப்பட்டது',
                     ),
-                    backgroundColor: Colors.green,
                   ),
-                );
+                  backgroundColor: Colors.green,
+                ),
+              );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -966,7 +966,7 @@ void _showEditDialog(BuildContext context, Car car, CarProvider carProvider,
                         car.allImageBytes, // Preserve all images when editing
                     confidenceScore: car.confidenceScore,
                   );
-
+                  
                   // Close the dialog first
                   Navigator.of(dialogContext).pop();
 
@@ -974,37 +974,37 @@ void _showEditDialog(BuildContext context, Car car, CarProvider carProvider,
                   // Use post-frame callback to ensure dialog is completely removed
                   SchedulerBinding.instance.addPostFrameCallback((_) async {
                     // Update car after dialog is fully closed
-                    await carProvider.updateCar(updatedCar);
-
+                  await carProvider.updateCar(updatedCar);
+                  
                     // Dispose controllers after dialog is fully closed
-                    makeController.dispose();
-                    modelController.dispose();
-                    yearController.dispose();
-                    descriptionController.dispose();
-                    odometerController.dispose();
-                    exteriorController.dispose();
-                    interiorController.dispose();
-                    damageController.dispose();
-                    tyreController.dispose();
-                    additionalInfoController.dispose();
-
+                  makeController.dispose();
+                  modelController.dispose();
+                  yearController.dispose();
+                  descriptionController.dispose();
+                  odometerController.dispose();
+                  exteriorController.dispose();
+                  interiorController.dispose();
+                  damageController.dispose();
+                  tyreController.dispose();
+                  additionalInfoController.dispose();
+                  
                     // Navigate to inventory screen
                     if (context.mounted) {
-                      context.go('/inventory');
+                  context.go('/inventory');
 
                       // Show success message
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              languageProvider.translate(
-                                'Car updated successfully',
-                                'கார் வெற்றிகரமாக புதுப்பிக்கப்பட்டது',
-                              ),
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        languageProvider.translate(
+                          'Car updated successfully',
+                          'கார் வெற்றிகரமாக புதுப்பிக்கப்பட்டது',
+                        ),
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                       }
                     }
                   });

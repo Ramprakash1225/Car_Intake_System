@@ -467,114 +467,166 @@ class _ProfitableCarCard extends StatelessWidget {
           if (imageUrl.isNotEmpty)
             Expanded(
               child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
-                ),
+              ),
                 child: FeatureImage(
                   imageUrl: imageUrl,
                   fallbackAsset: ImageHelper.profitableCarsFallback,
-                  width: double.infinity,
+                width: double.infinity,
                   height: double.infinity,
-                ),
-              ),
+                      ),
+                    ),
             ),
           // Content - Half width
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(isMobile ? 16 : 20),
+            padding: EdgeInsets.all(isMobile ? 16 : 20),
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header: Brand Model | Traction Period
-                    Text(
-                      '### ${car['brand']} ${car['model']} | ${car['tractionPeriod']}',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header: Brand Model | Traction Period
+                Text(
+                  '### ${car['brand']} ${car['model']} | ${car['tractionPeriod']}',
+                  style: TextStyle(
+                    fontSize: isMobile ? 18 : 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade900,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Overview (2 crisp lines)
+                Text(
+                  LanguageHelper.getAIContent(context, car, 'overview'),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade700,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Sales Data
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.analytics,
+                          color: Colors.blue.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        car['salesData']?.toString() ??
+                            Provider.of<LanguageProvider>(context)
+                                .translate('Sales: N/A', 'விற்பனை: N/A'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Key Metrics
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _MetricItem(
+                        label: Provider.of<LanguageProvider>(context)
+                            .translate('Resale Value:', 'மறுவிற்பனை மதிப்பு:'),
+                        value: car['resaleValue']?.toString() ?? 'High',
+                      ),
+                      const SizedBox(height: 8),
+                      _MetricItem(
+                        label: Provider.of<LanguageProvider>(context).translate(
+                            'Maintenance Cost:', 'பராமரிப்புச் செலவு:'),
+                        value: car['maintenanceCost']?.toString() ?? 'Medium',
+                      ),
+                      const SizedBox(height: 8),
+                      _MetricItem(
+                        label: Provider.of<LanguageProvider>(context)
+                            .translate('Sales Speed:', 'விற்பனை வேகம்:'),
+                        value: car['salesSpeed']?.toString() ?? 'Fast',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Read More Button
+                if (!isExpanded)
+                  TextButton.icon(
+                    onPressed: onToggle,
+                    icon: const Icon(Icons.arrow_downward, size: 18),
+                    label: Text(
+                      Provider.of<LanguageProvider>(context)
+                          .translate('Read More', 'மேலும் படிக்க'),
                       style: TextStyle(
-                        fontSize: isMobile ? 18 : 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade900,
-                        height: 1.3,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue.shade700,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Overview (2 crisp lines)
-                    Text(
-                      LanguageHelper.getAIContent(context, car, 'overview'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                        height: 1.6,
-                      ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                     ),
-                    const SizedBox(height: 16),
-                    // Sales Data
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.shade200),
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Detailed Insight (6 lines)
+                      Text(
+                        LanguageHelper.getAIContent(
+                            context, car, 'detailedInsight'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade800,
+                          height: 1.7,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.analytics,
-                              color: Colors.blue.shade700, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            car['salesData']?.toString() ??
-                                Provider.of<LanguageProvider>(context)
-                                    .translate('Sales: N/A', 'விற்பனை: N/A'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade900,
-                            ),
+                      const SizedBox(height: 16),
+                      // Context Label
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                          '[${LanguageHelper.getAIContent(context, car, 'contextLabel')}]',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                            fontStyle: FontStyle.italic,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Key Metrics
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _MetricItem(
-                            label: Provider.of<LanguageProvider>(context)
-                                .translate('Resale Value:', 'மறுவிற்பனை மதிப்பு:'),
-                            value: car['resaleValue']?.toString() ?? 'High',
-                          ),
-                          const SizedBox(height: 8),
-                          _MetricItem(
-                            label: Provider.of<LanguageProvider>(context).translate(
-                                'Maintenance Cost:', 'பராமரிப்புச் செலவு:'),
-                            value: car['maintenanceCost']?.toString() ?? 'Medium',
-                          ),
-                          const SizedBox(height: 8),
-                          _MetricItem(
-                            label: Provider.of<LanguageProvider>(context)
-                                .translate('Sales Speed:', 'விற்பனை வேகம்:'),
-                            value: car['salesSpeed']?.toString() ?? 'Fast',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Read More Button
-                    if (!isExpanded)
+                      const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: onToggle,
-                        icon: const Icon(Icons.arrow_downward, size: 18),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
                         label: Text(
                           Provider.of<LanguageProvider>(context)
-                              .translate('Read More', 'மேலும் படிக்க'),
+                              .translate('Read Less', 'குறைவாக படிக்க'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -585,62 +637,10 @@ class _ProfitableCarCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                         ),
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Detailed Insight (6 lines)
-                          Text(
-                            LanguageHelper.getAIContent(
-                                context, car, 'detailedInsight'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey.shade800,
-                              height: 1.7,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          // Context Label
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Text(
-                              '[${LanguageHelper.getAIContent(context, car, 'contextLabel')}]',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextButton.icon(
-                            onPressed: onToggle,
-                            icon: const Icon(Icons.arrow_upward, size: 18),
-                            label: Text(
-                              Provider.of<LanguageProvider>(context)
-                                  .translate('Read Less', 'குறைவாக படிக்க'),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                            ),
-                          ),
-                        ],
                       ),
-                  ],
+                    ],
+                  ),
+              ],
                 ),
               ),
             ),

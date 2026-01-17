@@ -1,8 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "mkdir -p build/web && echo 'Build directory created - using GitHub Actions for actual build'",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "build/web",
-  "installCommand": "echo 'No installation needed'",
   "rewrites": [
     {
       "source": "/(.*)",

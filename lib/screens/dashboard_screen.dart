@@ -81,7 +81,7 @@ class DashboardScreen extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(8),
-                                ),
+                            ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -107,58 +107,58 @@ class DashboardScreen extends StatelessWidget {
                               ),
                             ),
                           ] else ...[
-                            const SizedBox(height: 32),
+                          const SizedBox(height: 32),
                           ],
                           // Only show feature buttons on desktop
                           if (MediaQuery.of(context).size.width >= 768)
-                            Wrap(
-                              spacing: 16,
-                              runSpacing: 16,
-                              children: [
-                                // ElevatedButton.icon(
-                                //   onPressed: () => context.go('/analyze'),
-                                //   icon: const Icon(Icons.search),
-                                //   label: Text(
-                                //     languageProvider.translate('Analyze Car', 'கார் பகுப்பாய்வு'),
-                                //   ),
-                                //   style: ElevatedButton.styleFrom(
-                                //     backgroundColor: Colors.white,
-                                //     foregroundColor: const Color(0xFF1E3A8A),
-                                //     padding: EdgeInsets.symmetric(
-                                //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
-                                //       vertical: 16,
-                                //     ),
-                                //     shape: RoundedRectangleBorder(
-                                //       borderRadius: BorderRadius.circular(8),
-                                //     ),
-                                //   ),
-                                // ),
-                                // ElevatedButton.icon(
-                                //   onPressed: () => context.go('/popular-cars'),
-                                //   icon: const Icon(Icons.trending_up),
-                                //   label: Flexible(
-                                //     child: Text(
-                                //       languageProvider.translate('Popular Cars', 'பிரபலமான கார்கள்'),
-                                //       maxLines: 2,
-                                //       overflow: TextOverflow.ellipsis,
-                                //       textAlign: TextAlign.center,
-                                //     ),
-                                //   ),
-                                //   style: ElevatedButton.styleFrom(
-                                //     backgroundColor: Colors.green.shade600,
-                                //     foregroundColor: Colors.white,
-                                //     padding: EdgeInsets.symmetric(
-                                //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
-                                //       vertical: 16,
-                                //     ),
-                                //     shape: RoundedRectangleBorder(
-                                //       borderRadius: BorderRadius.circular(8),
-                                //     ),
-                                //   ),
-                                // ),
-                                ElevatedButton.icon(
-                                  onPressed: () => context.go('/trends'),
-                                  icon: const Icon(Icons.insights),
+                          Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              // ElevatedButton.icon(
+                              //   onPressed: () => context.go('/analyze'),
+                              //   icon: const Icon(Icons.search),
+                              //   label: Text(
+                              //     languageProvider.translate('Analyze Car', 'கார் பகுப்பாய்வு'),
+                              //   ),
+                              //   style: ElevatedButton.styleFrom(
+                              //     backgroundColor: Colors.white,
+                              //     foregroundColor: const Color(0xFF1E3A8A),
+                              //     padding: EdgeInsets.symmetric(
+                              //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
+                              //       vertical: 16,
+                              //     ),
+                              //     shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //   ),
+                              // ),
+                              // ElevatedButton.icon(
+                              //   onPressed: () => context.go('/popular-cars'),
+                              //   icon: const Icon(Icons.trending_up),
+                              //   label: Flexible(
+                              //     child: Text(
+                              //       languageProvider.translate('Popular Cars', 'பிரபலமான கார்கள்'),
+                              //       maxLines: 2,
+                              //       overflow: TextOverflow.ellipsis,
+                              //       textAlign: TextAlign.center,
+                              //     ),
+                              //   ),
+                              //   style: ElevatedButton.styleFrom(
+                              //     backgroundColor: Colors.green.shade600,
+                              //     foregroundColor: Colors.white,
+                              //     padding: EdgeInsets.symmetric(
+                              //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
+                              //       vertical: 16,
+                              //     ),
+                              //     shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //   ),
+                              // ),
+                              ElevatedButton.icon(
+                                onPressed: () => context.go('/trends'),
+                                icon: const Icon(Icons.insights),
                                   label: Text(
                                     languageProvider.translate(
                                         'Latest Trends',
@@ -166,26 +166,26 @@ class DashboardScreen extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.purple.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.purple.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: () => context.go('/car-launches'),
-                                  icon: const Icon(Icons.new_releases),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => context.go('/car-launches'),
+                                icon: const Icon(Icons.new_releases),
                                   label: Text(
                                     languageProvider.translate(
                                         'Latest Car Launches',
@@ -193,27 +193,27 @@ class DashboardScreen extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.teal.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.teal.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
+                              ),
+                              ElevatedButton.icon(
                                   onPressed: () =>
                                       context.go('/profitable-cars'),
-                                  icon: const Icon(Icons.attach_money),
+                                icon: const Icon(Icons.attach_money),
                                   label: Text(
                                     languageProvider.translate(
                                         'Profitable Cars',
@@ -221,27 +221,27 @@ class DashboardScreen extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
+                              ),
+                              ElevatedButton.icon(
                                   onPressed: () =>
                                       context.go('/tn-market-kings'),
-                                  icon: const Icon(Icons.king_bed),
+                                icon: const Icon(Icons.king_bed),
                                   label: Text(
                                     languageProvider.translate(
                                         'TN Market Kings',
@@ -249,27 +249,27 @@ class DashboardScreen extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepOrange.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepOrange.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
+                              ),
+                              ElevatedButton.icon(
                                   onPressed: () =>
                                       context.go('/daily-strategy'),
-                                  icon: const Icon(Icons.lightbulb),
+                                icon: const Icon(Icons.lightbulb),
                                   label: Text(
                                     languageProvider.translate(
                                         'Daily Strategy',
@@ -277,95 +277,95 @@ class DashboardScreen extends StatelessWidget {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.indigo.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.indigo.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: () => context.go('/todays-choice'),
-                                  icon: const Icon(Icons.star),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => context.go('/todays-choice'),
+                                icon: const Icon(Icons.star),
                                   label: Text(
                                     languageProvider.translate(
                                         'Today\'s Choice', 'இன்றைய சாய்ஸ்'),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.amber.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.amber.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: () => context.go('/top-5-picks'),
-                                  icon: const Icon(Icons.emoji_events),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => context.go('/top-5-picks'),
+                                icon: const Icon(Icons.emoji_events),
                                   label: Text(
                                     languageProvider.translate('Top 5 Picks',
                                         'டாப் 5 பிசினஸ் தேர்வுகள்'),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red.shade600,
-                                    foregroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: EdgeInsets.symmetric(
                                       horizontal:
                                           MediaQuery.of(context).size.width <
                                                   768
                                               ? 16
                                               : 24,
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                // ElevatedButton.icon(
-                                //   onPressed: () => context.go('/inventory'),
-                                //   icon: const Icon(Icons.check_circle),
-                                //   label: Text(
-                                //     languageProvider.translate('Inventory', 'சரக்கு'),
-                                //   ),
-                                //   style: ElevatedButton.styleFrom(
-                                //     backgroundColor: const Color(0xFF1E3A8A),
-                                //     foregroundColor: Colors.white,
-                                //     padding: EdgeInsets.symmetric(
-                                //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
-                                //       vertical: 16,
-                                //     ),
-                                //     shape: RoundedRectangleBorder(
-                                //       borderRadius: BorderRadius.circular(8),
-                                //     ),
-                                //   ),
-                                // ),
-                              ],
-                            ),
+                              ),
+                              // ElevatedButton.icon(
+                              //   onPressed: () => context.go('/inventory'),
+                              //   icon: const Icon(Icons.check_circle),
+                              //   label: Text(
+                              //     languageProvider.translate('Inventory', 'சரக்கு'),
+                              //   ),
+                              //   style: ElevatedButton.styleFrom(
+                              //     backgroundColor: const Color(0xFF1E3A8A),
+                              //     foregroundColor: Colors.white,
+                              //     padding: EdgeInsets.symmetric(
+                              //       horizontal: MediaQuery.of(context).size.width < 768 ? 16 : 24,
+                              //       vertical: 16,
+                              //     ),
+                              //     shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //   ),
+                              // ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -379,56 +379,56 @@ class DashboardScreen extends StatelessWidget {
                         final isMobile = constraints.maxWidth < 768;
                         final crossAxisCount = isMobile ? 2 : 4;
                         return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
+    crossAxisCount: crossAxisCount,
+    crossAxisSpacing: 16,
+    mainAxisSpacing: 16,
                             mainAxisExtent: isMobile
                                 ? 150
                                 : 190, // Adjusted height to prevent overflow
-                          ),
-                          itemCount: 4,
-                          itemBuilder: (context, index) {
-                            final cards = [
-                              _MetricCard(
-                                icon: Icons.directions_car,
+  ),
+  itemCount: 4,
+  itemBuilder: (context, index) {
+    final cards = [
+      _MetricCard(
+        icon: Icons.directions_car,
                                 label: languageProvider.translate(
                                     'Total Cars', 'மொத்த கார்கள்'),
-                                value: carProvider.totalCars.toString(),
-                                color: const Color(0xFF1E3A8A),
-                              ),
-                              _MetricCard(
-                                icon: Icons.access_time,
+        value: carProvider.totalCars.toString(),
+        color: const Color(0xFF1E3A8A),
+      ),
+      _MetricCard(
+        icon: Icons.access_time,
                                 label: languageProvider.translate(
                                     'Pending', 'நிலுவையில்'),
-                                value: carProvider.pendingCars.toString(),
-                                color: Colors.orange,
-                              ),
-                              _MetricCard(
-                                icon: Icons.check_circle,
+        value: carProvider.pendingCars.toString(),
+        color: Colors.orange,
+      ),
+      _MetricCard(
+        icon: Icons.check_circle,
                                 label: languageProvider.translate(
                                     'Approved', 'அனுமதிக்கப்பட்டது'),
-                                value: carProvider.approvedCars.toString(),
-                                color: Colors.green,
-                              ),
-                              _MetricCard(
-                                icon: Icons.eco,
-                                label: languageProvider.translate(
-                                  'Avg. Sustainability Score',
-                                  'சராசரி நிலைத்தன்மை மதிப்பெண்',
-                                ),
+        value: carProvider.approvedCars.toString(),
+        color: Colors.green,
+      ),
+      _MetricCard(
+        icon: Icons.eco,
+        label: languageProvider.translate(
+          'Avg. Sustainability Score',
+          'சராசரி நிலைத்தன்மை மதிப்பெண்',
+        ),
                                 value: carProvider.avgSustainabilityScore
                                     .toStringAsFixed(1),
-                                color: Colors.green,
-                              ),
-                            ];
+        color: Colors.green,
+      ),
+    ];
 
-                            return cards[index];
-                          },
-                        );
+    return cards[index];
+  },
+);
                       },
                     ),
                   ),
@@ -652,13 +652,13 @@ class _MetricCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
+            children: [
+              Container(
             padding: EdgeInsets.all(isMobile ? 6 : 8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
             child: Icon(icon, color: color, size: isMobile ? 20 : 24),
           ),
           SizedBox(height: isMobile ? 8 : 12),
@@ -676,11 +676,11 @@ class _MetricCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
-              value,
-              style: TextStyle(
+            value,
+            style: TextStyle(
                 fontSize: isMobile ? 28 : 32,
-                fontWeight: FontWeight.bold,
-                color: color,
+              fontWeight: FontWeight.bold,
+              color: color,
               ),
             ),
           ),

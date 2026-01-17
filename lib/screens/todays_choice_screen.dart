@@ -331,7 +331,7 @@ class _ChoiceCardState extends State<_ChoiceCard> {
   Widget build(BuildContext context) {
     final imageUrl = widget.choice['imageUrl']?.toString() ??
         'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800';
-
+    
     return Container(
       constraints: BoxConstraints(
         minHeight: 400,
@@ -355,325 +355,325 @@ class _ChoiceCardState extends State<_ChoiceCard> {
           // Image - Half width
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
-              ),
+            ),
               child: FeatureImage(
                 imageUrl: imageUrl,
                 fallbackAsset: ImageHelper.todaysChoiceFallback,
-                width: double.infinity,
+              width: double.infinity,
                 height: double.infinity,
               ),
             ),
-          ),
+            ),
 
           // Content - Half width
           Expanded(
             child: Padding(
-              padding: EdgeInsets.all(widget.isMobile ? 16 : 20),
+            padding: EdgeInsets.all(widget.isMobile ? 16 : 20),
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
-                  children: [
+              children: [
                     // Focus Title
-                    Text(
+                Text(
                       '### ${Provider.of<LanguageProvider>(context).translate("Today's Choice:", "இன்றைய சாய்ஸ்:")} ${widget.choice['brand']} ${widget.choice['model']}',
-                      style: TextStyle(
-                        fontSize: widget.isMobile ? 20 : 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade900,
-                        height: 1.3,
-                      ),
-                    ),
+                  style: TextStyle(
+                    fontSize: widget.isMobile ? 20 : 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade900,
+                    height: 1.3,
+                  ),
+                ),
 
-                    const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                     // Hidden Rationale
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.amber.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
                               Icon(Icons.psychology,
                                   color: Colors.amber.shade700, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
+                          const SizedBox(width: 8),
+                          Text(
                                 Provider.of<LanguageProvider>(context)
                                     .translate('Why Today?', 'ஏன் இன்று?'),
-                                style: TextStyle(
-                                  fontSize: widget.isMobile ? 15 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.amber.shade900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            LanguageHelper.getAIContent(
-                                context, widget.choice, 'hiddenRationale'),
                             style: TextStyle(
-                              fontSize: widget.isMobile ? 13 : 14,
-                              color: Colors.grey.shade800,
-                              height: 1.6,
+                              fontSize: widget.isMobile ? 15 : 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade900,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      Text(
+                            LanguageHelper.getAIContent(
+                                context, widget.choice, 'hiddenRationale'),
+                        style: TextStyle(
+                          fontSize: widget.isMobile ? 13 : 14,
+                          color: Colors.grey.shade800,
+                          height: 1.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                    const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                     // Profit Formula
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
                               Icon(Icons.calculate,
                                   color: Colors.blue.shade700, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
+                          const SizedBox(width: 8),
+                          Text(
                                 Provider.of<LanguageProvider>(context)
                                     .translate('Profit Calculation:',
                                         'லாபக் கணிப்பு:'),
-                                style: TextStyle(
-                                  fontSize: widget.isMobile ? 15 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.shade200),
-                            ),
-                            child: Text(
-                              LanguageHelper.getAIContent(
-                                  context, widget.choice, 'profitFormula'),
-                              style: TextStyle(
-                                fontSize: widget.isMobile ? 13 : 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade900,
-                                fontFamily: 'monospace',
-                                height: 1.5,
-                              ),
-                              textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: widget.isMobile ? 15 : 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
                             ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Text(
+                              LanguageHelper.getAIContent(
+                                  context, widget.choice, 'profitFormula'),
+                          style: TextStyle(
+                            fontSize: widget.isMobile ? 13 : 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue.shade900,
+                            fontFamily: 'monospace',
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-                    const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
                     // Business Deep-Dive
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.green.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
                               Icon(Icons.business_center,
                                   color: Colors.green.shade700, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
+                          const SizedBox(width: 8),
+                          Text(
                                 Provider.of<LanguageProvider>(context)
                                     .translate('Business Deep-Dive',
                                         'வணிக ஆழமான பார்வை'),
-                                style: TextStyle(
-                                  fontSize: widget.isMobile ? 15 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade900,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            LanguageHelper.getAIContent(
-                                context, widget.choice, 'businessDeepDive'),
                             style: TextStyle(
-                              fontSize: widget.isMobile ? 13 : 14,
-                              color: Colors.grey.shade800,
-                              height: 1.6,
+                              fontSize: widget.isMobile ? 15 : 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade900,
                             ),
                           ),
                         ],
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Business Metrics
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.purple.shade200),
+                      const SizedBox(height: 10),
+                      Text(
+                            LanguageHelper.getAIContent(
+                                context, widget.choice, 'businessDeepDive'),
+                        style: TextStyle(
+                          fontSize: widget.isMobile ? 13 : 14,
+                          color: Colors.grey.shade800,
+                          height: 1.6,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Business Metrics
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.purple.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
                               Icon(Icons.analytics,
                                   color: Colors.purple.shade700, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
+                          const SizedBox(width: 8),
+                          Text(
                                 Provider.of<LanguageProvider>(context)
                                     .translate(
                                         'Business Metrics', 'வணிக அளவீடுகள்'),
-                                style: TextStyle(
-                                  fontSize: widget.isMobile ? 15 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple.shade900,
-                                ),
-                              ),
-                            ],
+                            style: TextStyle(
+                              fontSize: widget.isMobile ? 15 : 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple.shade900,
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          _MetricRow(
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _MetricRow(
                             label: Provider.of<LanguageProvider>(context)
                                 .translate('Indian Sales:', 'இந்திய விற்பனை:'),
                             value: widget.choice['indianSales']?.toString() ??
                                 'N/A',
-                            isMobile: widget.isMobile,
-                          ),
-                          const SizedBox(height: 8),
-                          _MetricRow(
+                        isMobile: widget.isMobile,
+                      ),
+                      const SizedBox(height: 8),
+                      _MetricRow(
                             label: Provider.of<LanguageProvider>(context)
                                 .translate('TN Resale Value:',
                                     'தமிழக மறுவிற்பனை மவுசு:'),
                             value: widget.choice['tnResaleValue']?.toString() ??
                                 'High',
-                            isMobile: widget.isMobile,
-                          ),
-                          const SizedBox(height: 8),
-                          _MetricRow(
+                        isMobile: widget.isMobile,
+                      ),
+                      const SizedBox(height: 8),
+                      _MetricRow(
                             label: Provider.of<LanguageProvider>(context)
                                 .translate('Sales Speed:', 'விற்பனை வேகம்:'),
                             value: widget.choice['salesSpeed']?.toString() ??
                                 '3-5 Days',
-                            isMobile: widget.isMobile,
-                          ),
-                        ],
+                        isMobile: widget.isMobile,
                       ),
-                    ),
+                    ],
+                  ),
+                ),
 
                     const SizedBox(height: 16),
 
-                    // Usage & Feedback Section
-                    Container(
+                // Usage & Feedback Section
+                Container(
                       padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.teal.shade50,
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade50,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.teal.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    border: Border.all(color: Colors.teal.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
                               Icon(Icons.feedback,
                                   color: Colors.teal.shade700, size: 22),
-                              const SizedBox(width: 8),
-                              Text(
+                          const SizedBox(width: 8),
+                          Text(
                                 Provider.of<LanguageProvider>(context)
                                     .translate('Usage & Feedback',
                                         'எங்கள் ஆய்வுக்காக'),
-                                style: TextStyle(
-                                  fontSize: widget.isMobile ? 15 : 17,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.teal.shade900,
-                                ),
-                              ),
-                            ],
+                            style: TextStyle(
+                              fontSize: widget.isMobile ? 15 : 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal.shade900,
+                            ),
                           ),
+                        ],
+                      ),
                           const SizedBox(height: 12),
-                          // Reaction
-                          Text(
+                      // Reaction
+                      Text(
                             Provider.of<LanguageProvider>(context).translate(
                               'Was this prediction useful to you?',
-                              'இந்தக் கணிப்பு உங்களுக்குப் பயனுள்ளதாக இருந்ததா?',
+                        'இந்தக் கணிப்பு உங்களுக்குப் பயனுள்ளதாக இருந்ததா?',
                             ),
-                            style: TextStyle(
-                              fontSize: widget.isMobile ? 13 : 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              _ReactionButton(
-                                emoji: '👍',
-                                isSelected: widget.provider.reaction == '👍',
+                        style: TextStyle(
+                          fontSize: widget.isMobile ? 13 : 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _ReactionButton(
+                            emoji: '👍',
+                            isSelected: widget.provider.reaction == '👍',
                                 onTap: () {
                                   widget.provider.setReaction(
                                       widget.provider.reaction == '👍'
                                           ? null
                                           : '👍');
                                 },
-                              ),
-                              const SizedBox(width: 12),
-                              _ReactionButton(
-                                emoji: '👎',
-                                isSelected: widget.provider.reaction == '👎',
+                          ),
+                          const SizedBox(width: 12),
+                          _ReactionButton(
+                            emoji: '👎',
+                            isSelected: widget.provider.reaction == '👎',
                                 onTap: () {
                                   widget.provider.setReaction(
                                       widget.provider.reaction == '👎'
                                           ? null
                                           : '👎');
                                 },
-                              ),
-                            ],
                           ),
+                        ],
+                      ),
                           const SizedBox(height: 16),
-                          // Usage Tracker
-                          Text(
+                      // Usage Tracker
+                      Text(
                             Provider.of<LanguageProvider>(context).translate(
                               'Will you try to add this car to your inventory today?',
-                              'இந்த காரை உங்கள் இன்வென்டரியில் சேர்க்க இன்று முயற்சி செய்வீர்களா?',
+                        'இந்த காரை உங்கள் இன்வென்டரியில் சேர்க்க இன்று முயற்சி செய்வீர்களா?',
                             ),
-                            style: TextStyle(
-                              fontSize: widget.isMobile ? 13 : 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
+                        style: TextStyle(
+                          fontSize: widget.isMobile ? 13 : 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
                               Expanded(
                                 child: _UsageButton(
                                   label: Provider.of<LanguageProvider>(context)
@@ -687,8 +687,8 @@ class _ChoiceCardState extends State<_ChoiceCard> {
                                             : 'ஆம்');
                                   },
                                 ),
-                              ),
-                              const SizedBox(width: 12),
+                          ),
+                          const SizedBox(width: 12),
                               Expanded(
                                 child: _UsageButton(
                                   label: Provider.of<LanguageProvider>(context)
@@ -702,31 +702,31 @@ class _ChoiceCardState extends State<_ChoiceCard> {
                                             : 'இல்லை');
                                   },
                                 ),
-                              ),
-                            ],
                           ),
+                        ],
+                      ),
                           const SizedBox(height: 16),
-                          // Feedback
-                          Text(
+                      // Feedback
+                      Text(
                             Provider.of<LanguageProvider>(context).translate(
                               'Which model is in high demand in your area right now? (Type here)',
-                              'உங்கள் பகுதியில் தற்போது எந்த மாடல் அதிகத் தேவையில் உள்ளது? (இங்கே டைப் செய்யவும்)',
+                        'உங்கள் பகுதியில் தற்போது எந்த மாடல் அதிகத் தேவையில் உள்ளது? (இங்கே டைப் செய்யவும்)',
                             ),
-                            style: TextStyle(
-                              fontSize: widget.isMobile ? 13 : 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey.shade800,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _feedbackController,
-                            decoration: InputDecoration(
+                        style: TextStyle(
+                          fontSize: widget.isMobile ? 13 : 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _feedbackController,
+                        decoration: InputDecoration(
                               hintText: Provider.of<LanguageProvider>(context)
                                   .translate('Type your feedback...',
                                       'உங்கள் கருத்தை தட்டச்சு செய்யவும்...'),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                                 borderSide:
                                     BorderSide(color: Colors.teal.shade300),
                               ),
@@ -734,23 +734,23 @@ class _ChoiceCardState extends State<_ChoiceCard> {
                                 borderRadius: BorderRadius.circular(8),
                                 borderSide:
                                     BorderSide(color: Colors.teal.shade300),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide(
                                     color: Colors.teal.shade600, width: 2),
-                              ),
-                              contentPadding: const EdgeInsets.all(12),
-                            ),
+                          ),
+                          contentPadding: const EdgeInsets.all(12),
+                        ),
                             maxLines: 3,
                             onChanged: (value) {
                               widget.provider.setFeedback(value);
                             },
-                          ),
-                        ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ],
                 ),
               ),
             ),

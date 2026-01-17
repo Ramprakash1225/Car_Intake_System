@@ -308,81 +308,113 @@ class _TrendCard extends StatelessWidget {
           // Image - Half width
           Expanded(
             child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
                 bottomLeft: Radius.circular(16),
-              ),
-              child: Stack(
-                children: [
+            ),
+            child: Stack(
+              children: [
                   FeatureImage(
                     imageUrl: trend['imageUrl']?.toString(),
                     fallbackAsset: ImageHelper.latestTrendFallback,
-                    width: double.infinity,
+                  width: double.infinity,
                     height: double.infinity,
-                  ),
-                  // Domain Label Overlay
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        LanguageHelper.getAIContent(
-                            context, trend, 'domainLabel'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+                ),
+                // Domain Label Overlay
+                Positioned(
+                  bottom: 12,
+                  left: 12,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      LanguageHelper.getAIContent(
+                          context, trend, 'domainLabel'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
           ),
           // Content - Half width
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
               child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    Text(
-                      LanguageHelper.getAIContent(context, trend, 'header'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Text(
+                  LanguageHelper.getAIContent(context, trend, 'header'),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade900,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Overview
+                Text(
+                  LanguageHelper.getAIContent(context, trend, 'overview'),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey.shade700,
+                    height: 1.6,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Read More Button
+                if (!isExpanded)
+                  TextButton.icon(
+                    onPressed: onToggle,
+                    icon: const Icon(Icons.arrow_downward, size: 18),
+                    label: Text(
+                      Provider.of<LanguageProvider>(context)
+                          .translate('Read More', 'மேலும் படிக்க'),
                       style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade900,
-                        height: 1.3,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue.shade700,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Overview
-                    Text(
-                      LanguageHelper.getAIContent(context, trend, 'overview'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                        height: 1.6,
-                      ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                     ),
-                    const SizedBox(height: 16),
-                    // Read More Button
-                    if (!isExpanded)
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Detailed Insight
+                      Text(
+                        LanguageHelper.getAIContent(
+                            context, trend, 'detailedInsight'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey.shade800,
+                          height: 1.7,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: onToggle,
-                        icon: const Icon(Icons.arrow_downward, size: 18),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
                         label: Text(
                           Provider.of<LanguageProvider>(context)
-                              .translate('Read More', 'மேலும் படிக்க'),
+                              .translate('Read Less', 'குறைவாக படிக்க'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -393,42 +425,10 @@ class _TrendCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                         ),
-                      )
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Detailed Insight
-                          Text(
-                            LanguageHelper.getAIContent(
-                                context, trend, 'detailedInsight'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey.shade800,
-                              height: 1.7,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextButton.icon(
-                            onPressed: onToggle,
-                            icon: const Icon(Icons.arrow_upward, size: 18),
-                            label: Text(
-                              Provider.of<LanguageProvider>(context)
-                                  .translate('Read Less', 'குறைவாக படிக்க'),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                            ),
-                          ),
-                        ],
                       ),
-                  ],
+                    ],
+                  ),
+              ],
                 ),
               ),
             ),
