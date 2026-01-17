@@ -35,4 +35,5 @@ jobs:
         run: |
           cd build/web
           vercel --prod --token $VERCEL_TOKEN --yes --scope team_JIWhH03ZJ4w1Zjb8H4r8FuqD
+        continue-on-error: false
 

@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "echo 'Skipping build - using GitHub Actions for deployment'",
   "outputDirectory": "build/web",
+  "installCommand": "echo 'No installation needed'",
   "rewrites": [
     {
       "source": "/(.*)",
