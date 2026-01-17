@@ -74,8 +74,8 @@ class AppHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              // Text section - flexible to take available space
-              Flexible(
+              // Text section - takes remaining space
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -111,8 +111,8 @@ class AppHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 32),
-              // Three icons on the right - fixed size
+              const SizedBox(width: 8),
+              // Three icons on the right - fixed size, properly aligned
               Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
