@@ -153,6 +153,25 @@ The app is designed to work on:
 - Data validation for car analysis
 - Error handling with user-friendly messages
 
+## Deployment
+
+This project is deployed on Vercel:
+
+- **Production**: https://ai-car-intake.vercel.app
+- **Repository**: https://github.com/Ramprakash1225/Car_Intake_System
+
+### Deploying to Vercel
+
+1. Build the Flutter web app:
+   ```bash
+   flutter build web --release
+   ```
+
+2. Deploy to Vercel:
+   ```bash
+   vercel --prod
+   ```
+
 ## Future Enhancements
 
 - Image upload to cloud storage
@@ -169,4 +188,3 @@ This project is proprietary software.
 ## Support
 
 For issues or questions, please contact the development team.
-
