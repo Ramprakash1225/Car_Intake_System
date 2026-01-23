@@ -39,7 +39,6 @@ Future<void> main() async {
   if (!envLoaded) {
     try {
       await dotenv.load(fileName: "assets/.env");
-      debugPrint('✓ Successfully loaded .env file from assets');
       envLoaded = true;
     } catch (e) {
       debugPrint('✗ Could not load .env from assets: $e');
@@ -50,7 +49,7 @@ Future<void> main() async {
   if (!envLoaded) {
     try {
       await dotenv.load();
-      debugPrint('✓ Successfully loaded .env file (default)');
+
       envLoaded = true;
     } catch (e) {
       debugPrint('✗ Could not load .env (default): $e');
@@ -75,7 +74,6 @@ Future<void> main() async {
           }
         }
       }
-      debugPrint('✓ Successfully loaded .env file manually from assets');
       envLoaded = true;
     } catch (e) {
       debugPrint('✗ Could not load .env manually from assets: $e');

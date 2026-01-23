@@ -8,6 +8,7 @@ class PopularCarsProvider with ChangeNotifier {
   void setAIUsageProvider(AIUsageProvider provider) {
     _aiUsageProvider = provider;
   }
+
   List<Map<String, dynamic>> _popularCars = [];
   bool _isLoading = false;
   String _selectedRegion = 'all'; // 'all', 'worldwide', 'india'
@@ -24,7 +25,8 @@ class PopularCarsProvider with ChangeNotifier {
     // Start with empty data, wait for AI response
   }
 
-  Future<void> loadPopularCars({String? region, bool forceRefresh = false}) async {
+  Future<void> loadPopularCars(
+      {String? region, bool forceRefresh = false}) async {
     // If we already have data and not forcing refresh, don't show loading
     if (!forceRefresh && _popularCars.isNotEmpty && !_isLoading) {
       return;
@@ -38,16 +40,18 @@ class PopularCarsProvider with ChangeNotifier {
     try {
       final regionToUse = region ?? _selectedRegion;
       _selectedRegion = regionToUse;
-      
-      debugPrint('Loading popular cars from Gemini AI for region: $regionToUse');
-      final cars = await AIService.getPopularCars(region: regionToUse, forceRefresh: forceRefresh);
-      
+
+      debugPrint(
+          'Loading popular cars from Gemini AI for region: $regionToUse');
+      final cars = await AIService.getPopularCars(
+          region: regionToUse, forceRefresh: forceRefresh);
+
       if (cars.isNotEmpty) {
         _popularCars = cars;
         _isUsingFallbackData = false;
         // Mark AI feature as used
         _aiUsageProvider?.markAIFeatureUsed();
-        debugPrint('Successfully loaded ${cars.length} cars from Gemini AI');
+        debugPrint('Successfully loaded ${cars.length} cars from AI');
       } else {
         // If AI returned empty, use fallback
         _popularCars = AIService.getDefaultPopularCars(regionToUse);
@@ -74,4 +78,3 @@ class PopularCarsProvider with ChangeNotifier {
     return null;
   }
 }
-

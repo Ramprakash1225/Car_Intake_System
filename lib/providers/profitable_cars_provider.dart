@@ -56,7 +56,8 @@ class ProfitableCarsProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved profitable cars to cache');
     } catch (e) {
       debugPrint('Error saving profitable cars to cache: $e');
@@ -65,15 +66,24 @@ class ProfitableCarsProvider with ChangeNotifier {
 
   Future<void> loadProfitableCars({bool forceRefresh = false}) async {
     // If we already have data in memory and not forcing refresh, don't reload
-    if (!forceRefresh && _threeYearsCars.isNotEmpty && _fiveYearsCars.isNotEmpty && _tenYearsCars.isNotEmpty && !_isLoading) {
+    if (!forceRefresh &&
+        _threeYearsCars.isNotEmpty &&
+        _fiveYearsCars.isNotEmpty &&
+        _tenYearsCars.isNotEmpty &&
+        !_isLoading) {
       return;
     }
 
     // If not forcing refresh, try to load from cache first
-    if (!forceRefresh && _threeYearsCars.isEmpty && _fiveYearsCars.isEmpty && _tenYearsCars.isEmpty) {
+    if (!forceRefresh &&
+        _threeYearsCars.isEmpty &&
+        _fiveYearsCars.isEmpty &&
+        _tenYearsCars.isEmpty) {
       await _loadCachedData();
       // If we have cached data, use it and don't call AI
-      if (_threeYearsCars.isNotEmpty || _fiveYearsCars.isNotEmpty || _tenYearsCars.isNotEmpty) {
+      if (_threeYearsCars.isNotEmpty ||
+          _fiveYearsCars.isNotEmpty ||
+          _tenYearsCars.isNotEmpty) {
         return;
       }
     }
@@ -85,15 +95,19 @@ class ProfitableCarsProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading profitable cars from Gemini AI...');
-      final cars = await AIService.generateProfitableCars(forceRefresh: forceRefresh);
-      
-      if (cars['threeYears'] != null && cars['fiveYears'] != null && cars['tenYears'] != null) {
+      final cars =
+          await AIService.generateProfitableCars(forceRefresh: forceRefresh);
+
+      if (cars['threeYears'] != null &&
+          cars['fiveYears'] != null &&
+          cars['tenYears'] != null) {
         _threeYearsCars = cars['threeYears'] ?? [];
         _fiveYearsCars = cars['fiveYears'] ?? [];
         _tenYearsCars = cars['tenYears'] ?? [];
         _isUsingFallbackData = false;
         await _saveToCache(cars);
-        debugPrint('Successfully loaded profitable cars from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded profitable cars from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         final fallbackData = AIService.getDefaultProfitableCars();
@@ -119,4 +133,3 @@ class ProfitableCarsProvider with ChangeNotifier {
     }
   }
 }
-

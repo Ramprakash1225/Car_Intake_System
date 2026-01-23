@@ -40,7 +40,8 @@ class DailyStrategyProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved daily strategy to cache');
     } catch (e) {
       debugPrint('Error saving daily strategy to cache: $e');
@@ -69,13 +70,15 @@ class DailyStrategyProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading daily strategy from Gemini AI...');
-      final strategy = await AIService.generateDailyStrategy(forceRefresh: forceRefresh);
-      
+      final strategy =
+          await AIService.generateDailyStrategy(forceRefresh: forceRefresh);
+
       if (strategy.isNotEmpty) {
         _strategy = strategy;
         _isUsingFallbackData = false;
         await _saveToCache(strategy);
-        debugPrint('Successfully loaded daily strategy from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded daily strategy from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         _strategy = AIService.getDefaultDailyStrategy();
@@ -95,4 +98,3 @@ class DailyStrategyProvider with ChangeNotifier {
     }
   }
 }
-

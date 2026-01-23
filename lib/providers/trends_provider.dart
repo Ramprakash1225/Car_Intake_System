@@ -10,6 +10,7 @@ class TrendsProvider with ChangeNotifier {
   void setAIUsageProvider(AIUsageProvider provider) {
     _aiUsageProvider = provider;
   }
+
   List<Map<String, dynamic>> _trends = [];
   bool _isLoading = false;
   String? _error;
@@ -33,7 +34,8 @@ class TrendsProvider with ChangeNotifier {
       final cachedJson = prefs.getString(_cacheKey);
       if (cachedJson != null && cachedJson.isNotEmpty) {
         final List<dynamic> cachedList = json.decode(cachedJson);
-        _trends = cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
+        _trends =
+            cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
         _isUsingFallbackData = false;
         debugPrint('Loaded ${_trends.length} trends from cache');
         notifyListeners();
@@ -47,7 +49,8 @@ class TrendsProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved trends to cache');
     } catch (e) {
       debugPrint('Error saving trends to cache: $e');
@@ -76,15 +79,17 @@ class TrendsProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading latest trends from Gemini AI...');
-      final trends = await AIService.generateLatestTrends(forceRefresh: forceRefresh);
-      
+      final trends =
+          await AIService.generateLatestTrends(forceRefresh: forceRefresh);
+
       if (trends.isNotEmpty) {
         _trends = trends;
         _isUsingFallbackData = false;
         // Mark AI feature as used
         _aiUsageProvider?.markAIFeatureUsed();
         await _saveToCache(trends);
-        debugPrint('Successfully loaded ${trends.length} trends from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded ${trends.length} trends from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         _trends = AIService.getDefaultTrends();
@@ -104,4 +109,3 @@ class TrendsProvider with ChangeNotifier {
     }
   }
 }
-

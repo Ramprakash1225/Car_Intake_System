@@ -46,7 +46,8 @@ class TodaysChoiceProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved today\'s choice to cache');
     } catch (e) {
       debugPrint('Error saving today\'s choice to cache: $e');
@@ -75,13 +76,15 @@ class TodaysChoiceProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading today\'s choice from Gemini AI...');
-      final choice = await AIService.generateTodaysChoice(forceRefresh: forceRefresh);
-      
+      final choice =
+          await AIService.generateTodaysChoice(forceRefresh: forceRefresh);
+
       if (choice.isNotEmpty) {
         _choice = choice;
         _isUsingFallbackData = false;
         await _saveToCache(choice);
-        debugPrint('Successfully loaded today\'s choice from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded today\'s choice from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         _choice = AIService.getDefaultTodaysChoice();
@@ -116,4 +119,3 @@ class TodaysChoiceProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

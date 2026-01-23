@@ -38,7 +38,8 @@ class CarLaunchesProvider with ChangeNotifier {
                 .toList() ??
             [];
         _isUsingFallbackData = false;
-        debugPrint('Loaded ${_indiaCars.length} India cars and ${_globalCars.length} global cars from cache');
+        debugPrint(
+            'Loaded ${_indiaCars.length} India cars and ${_globalCars.length} global cars from cache');
         notifyListeners();
       }
     } catch (e) {
@@ -50,7 +51,8 @@ class CarLaunchesProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved car launches to cache');
     } catch (e) {
       debugPrint('Error saving car launches to cache: $e');
@@ -59,7 +61,10 @@ class CarLaunchesProvider with ChangeNotifier {
 
   Future<void> loadLatestCarLaunches({bool forceRefresh = false}) async {
     // If we already have data in memory and not forcing refresh, don't reload
-    if (!forceRefresh && _indiaCars.isNotEmpty && _globalCars.isNotEmpty && !_isLoading) {
+    if (!forceRefresh &&
+        _indiaCars.isNotEmpty &&
+        _globalCars.isNotEmpty &&
+        !_isLoading) {
       return;
     }
 
@@ -79,14 +84,16 @@ class CarLaunchesProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading latest car launches from Gemini AI...');
-      final launches = await AIService.generateLatestCarLaunches(forceRefresh: forceRefresh);
-      
+      final launches =
+          await AIService.generateLatestCarLaunches(forceRefresh: forceRefresh);
+
       if (launches['india'] != null && launches['global'] != null) {
         _indiaCars = launches['india'] ?? [];
         _globalCars = launches['global'] ?? [];
         _isUsingFallbackData = false;
         await _saveToCache(launches);
-        debugPrint('Successfully loaded ${_indiaCars.length} India cars and ${_globalCars.length} global cars from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded ${_indiaCars.length} India cars and ${_globalCars.length} global cars from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         final fallbackData = AIService.getDefaultCarLaunches();
@@ -110,4 +117,3 @@ class CarLaunchesProvider with ChangeNotifier {
     }
   }
 }
-

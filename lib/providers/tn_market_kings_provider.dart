@@ -27,7 +27,8 @@ class TNMarketKingsProvider with ChangeNotifier {
       final cachedJson = prefs.getString(_cacheKey);
       if (cachedJson != null && cachedJson.isNotEmpty) {
         final List<dynamic> cachedList = json.decode(cachedJson);
-        _marketKings = cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
+        _marketKings =
+            cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
         _isUsingFallbackData = false;
         debugPrint('Loaded ${_marketKings.length} TN market kings from cache');
         notifyListeners();
@@ -41,7 +42,8 @@ class TNMarketKingsProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
       debugPrint('Saved TN market kings to cache');
     } catch (e) {
       debugPrint('Error saving TN market kings to cache: $e');
@@ -70,13 +72,15 @@ class TNMarketKingsProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading Tamil Nadu Market Kings from Gemini AI...');
-      final kings = await AIService.generateTNMarketKings(forceRefresh: forceRefresh);
-      
+      final kings =
+          await AIService.generateTNMarketKings(forceRefresh: forceRefresh);
+
       if (kings.isNotEmpty) {
         _marketKings = kings;
         _isUsingFallbackData = false;
         await _saveToCache(kings);
-        debugPrint('Successfully loaded ${kings.length} TN market kings from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded ${kings.length} TN market kings from AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         _marketKings = AIService.getDefaultTNMarketKings();
@@ -96,4 +100,3 @@ class TNMarketKingsProvider with ChangeNotifier {
     }
   }
 }
-
