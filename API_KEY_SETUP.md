@@ -25,7 +25,7 @@ This application uses Google Gemini AI for car image analysis. You need to confi
 
 1. **Create a `.env` file** in the root directory of your project:
    ```
-   GEMINI_API_KEY=AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
+   GEMINI_API_KEY=your_api_key_here
 
    ```
 
@@ -40,7 +40,7 @@ This application uses Google Gemini AI for car image analysis. You need to confi
 
 3. **Edit the `.env` file** and replace `your_api_key_here` with your actual API key:
    ```
-   GEMINI_API_KEY=AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
+   GEMINI_API_KEY=your_actual_api_key_here
 
    ```
 
@@ -52,23 +52,20 @@ You can also set the API key as an environment variable:
 
 **Windows PowerShell:**
 ```powershell
-$env:GEMINI_API_KEY="AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
-"
+$env:GEMINI_API_KEY="your_api_key_here"
 flutter run -d chrome
 ```
 
 **Linux/Mac:**
 ```bash
-export GEMINI_API_KEY="yAIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
-"
+export GEMINI_API_KEY="your_api_key_here"
 flutter run -d chrome
 ```
 
 ### Method 3: Using --dart-define (For Production)
 
 ```bash
-flutter run -d chrome --dart-define=GEMINI_API_KEY=AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
-
+flutter run -d chrome --dart-define=GEMINI_API_KEY=your_api_key_here
 ```
 
 ## Step 3: Verify Configuration
@@ -103,8 +100,7 @@ flutter run -d chrome --dart-define=GEMINI_API_KEY=AIzaSyCnIqu_wbb-aHv3d9idWAP-0
 - **Cause:** `.env` file not loaded or API key not set
 - **Solution:**
   - Ensure `.env` file exists in the project root
-  - Check that the file contains `GEMINI_API_KEY=AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0
-`
+  - Check that the file contains `GEMINI_API_KEY=your_api_key_here`
   - Restart the Flutter app after creating/editing `.env`
 
 ### Error: Quota exceeded

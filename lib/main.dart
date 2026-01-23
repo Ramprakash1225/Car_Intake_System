@@ -30,7 +30,6 @@ Future<void> main() async {
   // Method 1: Try loading from root (for native platforms)
   try {
     await dotenv.load(fileName: ".env");
-    debugPrint('✓ Successfully loaded .env file from root');
     envLoaded = true;
   } catch (e) {
     debugPrint('✗ Could not load .env from root: $e');
@@ -88,21 +87,9 @@ Future<void> main() async {
   if (envLoaded) {
     loadedApiKey = dotenv.env['GEMINI_API_KEY'];
     if (loadedApiKey != null && loadedApiKey.isNotEmpty) {
-      debugPrint(
-          '✓ API Key loaded successfully: ${loadedApiKey.substring(0, 10)}...');
-      debugPrint('✓ API Key length: ${loadedApiKey.length}');
-      debugPrint('✓ dotenv.isInitialized: ${dotenv.isInitialized}');
       // Set the API key in AIService for direct access
       AIService.setApiKey(loadedApiKey);
-    } else {
-      debugPrint(
-          '✗ WARNING: GEMINI_API_KEY is empty or not found in .env file');
-      debugPrint('Available env keys: ${dotenv.env.keys.toList()}');
     }
-  } else {
-    debugPrint('✗ ERROR: Could not load .env file from root or assets');
-    debugPrint(
-        'Please ensure .env file exists with: GEMINI_API_KEY=your_api_key');
   }
 
   // Final check: if we still don't have an API key, try to get it from manual parsing
@@ -122,22 +109,14 @@ Future<void> main() async {
             if (key == 'GEMINI_API_KEY' && value.isNotEmpty) {
               loadedApiKey = value;
               AIService.setApiKey(value);
-              debugPrint('✓ API Key loaded manually from assets/.env (UTF-8)');
               break;
             }
           }
         }
       }
     } catch (e) {
-      debugPrint('✗ Could not load API key manually: $e');
-      // Last resort: hardcode the API key (only for development)
-      debugPrint('⚠️  Attempting to use API key directly...');
-      const fallbackKey = 'AIzaSyD1vbAbHeif4W7006H0etfJbUyEFAtKAm8';
-      if (fallbackKey.isNotEmpty) {
-        loadedApiKey = fallbackKey;
-        AIService.setApiKey(fallbackKey);
-        debugPrint('✓ API Key set directly (fallback)');
-      }
+      // SECURITY: No hardcoded fallback keys allowed
+      // Silent error handling - no debug prints for security
     }
   }
 

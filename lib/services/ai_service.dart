@@ -13,7 +13,6 @@ class AIService {
   // Set API key (called from main.dart after loading .env)
   static void setApiKey(String key) {
     _cachedApiKey = key;
-    debugPrint('✓ AIService: API key cached successfully');
   }
 
   // Cache helper methods
@@ -93,38 +92,26 @@ class AIService {
   // Get API key from environment variables - NO FALLBACK (security)
   static String get apiKey {
     try {
-      debugPrint('=== API Key Check ===');
-      
       // First, try cached API key (set from main.dart)
       if (_cachedApiKey != null && _cachedApiKey!.isNotEmpty) {
-        debugPrint('✓ Using cached API key: ${_cachedApiKey!.substring(0, 10)}...');
         return _cachedApiKey!.trim();
       }
 
       // Fallback: Try dotenv (in case it was loaded)
-      debugPrint('dotenv.isInitialized: ${dotenv.isInitialized}');
       final envKey = dotenv.env['GEMINI_API_KEY'];
-      debugPrint(
-          'GEMINI_API_KEY from dotenv: ${envKey != null ? "${envKey.substring(0, 10)}... (length: ${envKey.length})" : "null"}');
-      debugPrint('All dotenv keys: ${dotenv.env.keys.toList()}');
 
       if (envKey != null && envKey.isNotEmpty && envKey.trim().isNotEmpty) {
         // Cache it for future use
         _cachedApiKey = envKey.trim();
-        debugPrint('✓ Using API key from dotenv and caching it');
         return _cachedApiKey!;
-      } else {
-        debugPrint('✗ GEMINI_API_KEY is null or empty');
       }
-    } catch (e, stackTrace) {
-      debugPrint('Error accessing .env file: $e');
-      debugPrint('Stack trace: $stackTrace');
+    } catch (e) {
+      // Silent error handling - no debug prints for security
     }
 
     // NO FALLBACK - throw error if API key is not configured
-    debugPrint('=== API Key Error ===');
     throw Exception(
-        'GEMINI_API_KEY is not configured. Please create a .env file in the root directory with: GEMINI_API_KEY=your_api_key_here. dotenv.isInitialized=${dotenv.isInitialized}');
+        'GEMINI_API_KEY is not configured. Please create a .env file in the root directory with: GEMINI_API_KEY=your_api_key_here');
   }
 
   // Get reliable placeholder image URLs from Pexels (more stable than Unsplash)
@@ -1370,82 +1357,30 @@ Return ONLY valid JSON, no additional text or markdown.''';
 
       // If we successfully parsed JSON, validate and return
       if (jsonData != null) {
-        final threeYears =
-            (jsonData['threeYears'] as List<dynamic>?)?.map((item) {
-                  final car = item as Map<String, dynamic>;
-                  return {
-                    'brand': car['brand']?.toString() ?? 'Unknown',
-                    'model': car['model']?.toString() ?? 'Unknown',
-                    'tractionPeriod':
-                        car['tractionPeriod']?.toString() ?? '3 Years',
-                    'overview': car['overview']?.toString() ?? '',
-                    'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
-                    'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
-                    'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                    'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                    'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                    'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
-                    'imageUrl': validateAndSanitizeImageUrl(
-                      car['imageUrl']?.toString(),
-                      carModel:
-                          car['model']?.toString() ?? car['brand']?.toString(),
-                    ),
-                    'resaleValue': car['resaleValue']?.toString() ?? 'High',
-                    'maintenanceCost':
-                        car['maintenanceCost']?.toString() ?? 'Medium',
-                    'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
-                    'contextLabel':
-                        car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
-                    'contextLabel_en': car['contextLabel_en']?.toString() ?? car['contextLabel']?.toString() ?? 'Vehicle Market',
-                    'contextLabel_ta': car['contextLabel_ta']?.toString() ?? car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
-                  };
-                }).toList() ??
-                [];
-
-        final fiveYears =
-            (jsonData['fiveYears'] as List<dynamic>?)?.map((item) {
-                  final car = item as Map<String, dynamic>;
-                  return {
-                    'brand': car['brand']?.toString() ?? 'Unknown',
-                    'model': car['model']?.toString() ?? 'Unknown',
-                    'tractionPeriod':
-                        car['tractionPeriod']?.toString() ?? '5 Years',
-                    'overview': car['overview']?.toString() ?? '',
-                    'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
-                    'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
-                    'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                    'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                    'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                    'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
-                    'imageUrl': validateAndSanitizeImageUrl(
-                      car['imageUrl']?.toString(),
-                      carModel:
-                          car['model']?.toString() ?? car['brand']?.toString(),
-                    ),
-                    'resaleValue': car['resaleValue']?.toString() ?? 'High',
-                    'maintenanceCost':
-                        car['maintenanceCost']?.toString() ?? 'Medium',
-                    'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
-                    'contextLabel':
-                        car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
-                  };
-                }).toList() ??
-                [];
-
-        final tenYears = (jsonData['tenYears'] as List<dynamic>?)?.map((item) {
+        final threeYears = (jsonData['threeYears'] as List<dynamic>?)
+                ?.map((item) {
               final car = item as Map<String, dynamic>;
               return {
                 'brand': car['brand']?.toString() ?? 'Unknown',
                 'model': car['model']?.toString() ?? 'Unknown',
                 'tractionPeriod':
-                    car['tractionPeriod']?.toString() ?? '10 Years',
+                    car['tractionPeriod']?.toString() ?? '3 Years',
                 'overview': car['overview']?.toString() ?? '',
-                'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
-                'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
+                'overview_en': car['overview_en']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
+                'overview_ta': car['overview_ta']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
                 'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
-                'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
+                'detailedInsight_en': car['detailedInsight_en']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'detailedInsight_ta': car['detailedInsight_ta']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'salesData':
+                    car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
                 'imageUrl': validateAndSanitizeImageUrl(
                   car['imageUrl']?.toString(),
                   carModel:
@@ -1457,8 +1392,95 @@ Return ONLY valid JSON, no additional text or markdown.''';
                 'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
                 'contextLabel':
                     car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
-                'contextLabel_en': car['contextLabel_en']?.toString() ?? car['contextLabel']?.toString() ?? 'Vehicle Market',
-                'contextLabel_ta': car['contextLabel_ta']?.toString() ?? car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
+                'contextLabel_en': car['contextLabel_en']?.toString() ??
+                    car['contextLabel']?.toString() ??
+                    'Vehicle Market',
+                'contextLabel_ta': car['contextLabel_ta']?.toString() ??
+                    car['contextLabel']?.toString() ??
+                    'வாகனச் சந்தை',
+              };
+            }).toList() ??
+            [];
+
+        final fiveYears = (jsonData['fiveYears'] as List<dynamic>?)
+                ?.map((item) {
+              final car = item as Map<String, dynamic>;
+              return {
+                'brand': car['brand']?.toString() ?? 'Unknown',
+                'model': car['model']?.toString() ?? 'Unknown',
+                'tractionPeriod':
+                    car['tractionPeriod']?.toString() ?? '5 Years',
+                'overview': car['overview']?.toString() ?? '',
+                'overview_en': car['overview_en']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
+                'overview_ta': car['overview_ta']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
+                'detailedInsight': car['detailedInsight']?.toString() ?? '',
+                'detailedInsight_en': car['detailedInsight_en']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'detailedInsight_ta': car['detailedInsight_ta']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'salesData':
+                    car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
+                'imageUrl': validateAndSanitizeImageUrl(
+                  car['imageUrl']?.toString(),
+                  carModel:
+                      car['model']?.toString() ?? car['brand']?.toString(),
+                ),
+                'resaleValue': car['resaleValue']?.toString() ?? 'High',
+                'maintenanceCost':
+                    car['maintenanceCost']?.toString() ?? 'Medium',
+                'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
+                'contextLabel':
+                    car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
+              };
+            }).toList() ??
+            [];
+
+        final tenYears = (jsonData['tenYears'] as List<dynamic>?)?.map((item) {
+              final car = item as Map<String, dynamic>;
+              return {
+                'brand': car['brand']?.toString() ?? 'Unknown',
+                'model': car['model']?.toString() ?? 'Unknown',
+                'tractionPeriod':
+                    car['tractionPeriod']?.toString() ?? '10 Years',
+                'overview': car['overview']?.toString() ?? '',
+                'overview_en': car['overview_en']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
+                'overview_ta': car['overview_ta']?.toString() ??
+                    car['overview']?.toString() ??
+                    '',
+                'detailedInsight': car['detailedInsight']?.toString() ?? '',
+                'detailedInsight_en': car['detailedInsight_en']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'detailedInsight_ta': car['detailedInsight_ta']?.toString() ??
+                    car['detailedInsight']?.toString() ??
+                    '',
+                'salesData':
+                    car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
+                'imageUrl': validateAndSanitizeImageUrl(
+                  car['imageUrl']?.toString(),
+                  carModel:
+                      car['model']?.toString() ?? car['brand']?.toString(),
+                ),
+                'resaleValue': car['resaleValue']?.toString() ?? 'High',
+                'maintenanceCost':
+                    car['maintenanceCost']?.toString() ?? 'Medium',
+                'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
+                'contextLabel':
+                    car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
+                'contextLabel_en': car['contextLabel_en']?.toString() ??
+                    car['contextLabel']?.toString() ??
+                    'Vehicle Market',
+                'contextLabel_ta': car['contextLabel_ta']?.toString() ??
+                    car['contextLabel']?.toString() ??
+                    'வாகனச் சந்தை',
               };
             }).toList() ??
             [];
@@ -1672,15 +1694,21 @@ Return ONLY valid JSON array, no additional text or markdown.''';
             'brand': vehicle['brand']?.toString() ?? 'Unknown',
             'model': vehicle['model']?.toString() ?? 'Unknown',
             'wowFactor': vehicle['wowFactor']?.toString() ?? '',
-            'wowFactor_en': vehicle['wowFactor_en']?.toString() ?? 
-                vehicle['wowFactor']?.toString() ?? '',
-            'wowFactor_ta': vehicle['wowFactor_ta']?.toString() ?? 
-                vehicle['wowFactor']?.toString() ?? '',
+            'wowFactor_en': vehicle['wowFactor_en']?.toString() ??
+                vehicle['wowFactor']?.toString() ??
+                '',
+            'wowFactor_ta': vehicle['wowFactor_ta']?.toString() ??
+                vehicle['wowFactor']?.toString() ??
+                '',
             'tnBusinessInsight': vehicle['tnBusinessInsight']?.toString() ?? '',
-            'tnBusinessInsight_en': vehicle['tnBusinessInsight_en']?.toString() ?? 
-                vehicle['tnBusinessInsight']?.toString() ?? '',
-            'tnBusinessInsight_ta': vehicle['tnBusinessInsight_ta']?.toString() ?? 
-                vehicle['tnBusinessInsight']?.toString() ?? '',
+            'tnBusinessInsight_en':
+                vehicle['tnBusinessInsight_en']?.toString() ??
+                    vehicle['tnBusinessInsight']?.toString() ??
+                    '',
+            'tnBusinessInsight_ta':
+                vehicle['tnBusinessInsight_ta']?.toString() ??
+                    vehicle['tnBusinessInsight']?.toString() ??
+                    '',
             'imageUrl':
                 vehicle['imageUrl']?.toString() ?? getReliableCarImageUrl(),
             'indianSales': vehicle['indianSales']?.toString() ?? 'N/A',
@@ -1998,7 +2026,7 @@ Return ONLY valid JSON array, no additional text or markdown.''';
           RegExp(r'```\s*(\{[\s\S]*?\})\s*```', dotAll: true),
           RegExp(r'```\s*(\[[\s\S]*?\])\s*```', dotAll: true),
         ];
-        
+
         for (final pattern in codeBlockPatterns) {
           final match = pattern.firstMatch(responseText);
           if (match != null && match.groupCount > 0) {
@@ -2031,12 +2059,13 @@ Return ONLY valid JSON array, no additional text or markdown.''';
               }
             }
             if (objectEnd != -1) {
-              final jsonString = responseText.substring(objectStart, objectEnd).trim();
+              final jsonString =
+                  responseText.substring(objectStart, objectEnd).trim();
               parsedJson = json.decode(jsonString);
               print('Successfully parsed JSON object using brace matching');
             }
           }
-          
+
           // If object parsing failed, try array
           if (parsedJson == null) {
             final arrayStart = responseText.indexOf('[');
@@ -2054,7 +2083,8 @@ Return ONLY valid JSON array, no additional text or markdown.''';
                 }
               }
               if (arrayEnd != -1) {
-                final jsonString = responseText.substring(arrayStart, arrayEnd).trim();
+                final jsonString =
+                    responseText.substring(arrayStart, arrayEnd).trim();
                 parsedJson = json.decode(jsonString);
                 print('Successfully parsed JSON array using bracket matching');
               }
@@ -2071,10 +2101,12 @@ Return ONLY valid JSON array, no additional text or markdown.''';
           // Remove any leading/trailing markdown formatting
           String cleanedText = responseText.trim();
           // Remove markdown code block markers if they exist
-          cleanedText = cleanedText.replaceAll(RegExp(r'^```(?:json)?\s*', multiLine: true), '');
-          cleanedText = cleanedText.replaceAll(RegExp(r'\s*```$', multiLine: true), '');
+          cleanedText = cleanedText.replaceAll(
+              RegExp(r'^```(?:json)?\s*', multiLine: true), '');
+          cleanedText =
+              cleanedText.replaceAll(RegExp(r'\s*```$', multiLine: true), '');
           cleanedText = cleanedText.trim();
-          
+
           parsedJson = json.decode(cleanedText);
           print('Successfully parsed JSON directly after cleaning');
         } catch (e) {
@@ -2296,11 +2328,19 @@ Return ONLY valid JSON array, no additional text or markdown.''';
           return {
             'rank': car['rank']?.toString() ?? '1',
             'brand': car['brand']?.toString() ?? 'Unknown',
-            'brand_ta': car['brand_ta']?.toString() ?? car['brand']?.toString() ?? 'Unknown',
-            'brand_en': car['brand_en']?.toString() ?? car['brand']?.toString() ?? 'Unknown',
+            'brand_ta': car['brand_ta']?.toString() ??
+                car['brand']?.toString() ??
+                'Unknown',
+            'brand_en': car['brand_en']?.toString() ??
+                car['brand']?.toString() ??
+                'Unknown',
             'model': car['model']?.toString() ?? 'Unknown',
-            'model_ta': car['model_ta']?.toString() ?? car['model']?.toString() ?? 'Unknown',
-            'model_en': car['model_en']?.toString() ?? car['model']?.toString() ?? 'Unknown',
+            'model_ta': car['model_ta']?.toString() ??
+                car['model']?.toString() ??
+                'Unknown',
+            'model_en': car['model_en']?.toString() ??
+                car['model']?.toString() ??
+                'Unknown',
             'segment': car['segment']?.toString() ?? 'வாகனம்',
             'overviewRationale': car['overviewRationale']?.toString() ?? '',
             'imageUrl': validateAndSanitizeImageUrl(

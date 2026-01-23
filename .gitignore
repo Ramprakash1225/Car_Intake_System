@@ -52,6 +52,9 @@ app.*.map.json
 # Environment variables
 .env
 .env.local
+.env.*.local
+*.env
+!*.env.example
 
 # API Keys (if stored separately)
 *_key.txt

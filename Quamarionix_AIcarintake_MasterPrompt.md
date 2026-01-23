@@ -67,10 +67,10 @@ The following rules, guildelines and guardrails to be executed and followed whil
 6. Design as a very scalable and high performant and highly secure so that it is resistant aganst any form of cyber atatcks and data is not leaked by any means.
 7. Ensure al other best practices of all tech stack and lnagauges involved and all the best insudtry standards, coding guidelines and 720 degree surity.
 8. Design it in such a way that it ca be leveraged for the next 100 years.
-9. Leverage the follwoing vertex AI / gemini credentials:
+9. Leverage the following vertex AI / gemini credentials:
 
-API Key: AIzaSyA7oGlXXkoAHAY1p-Nqy_urVG8DK_L37Bw
-Service Account: qumarionixbk@qumarionixbk.iam.gserviceaccount.com
+API Key: [Configure via GEMINI_API_KEY environment variable]
+Service Account: [Configure via service account environment variable if needed]
 10. Ensure all the validations are performed on all the inputs provided by the user and throw very user friendly lanaguages in the chosen vernacular language.
 11. Follow all the Responsible AI, Explainable AI and Ethical Standards
 12. Follow the necessary cost optimization startegies and high effieciency enabled design.
