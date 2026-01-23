@@ -281,54 +281,6 @@ class _CarLaunchesScreenState extends State<CarLaunchesScreen> {
                         },
                       );
                     }),
-                    const SizedBox(height: 32),
-                    // Global Section Header
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.public,
-                              color: Colors.blue.shade700, size: 28),
-                          const SizedBox(width: 12),
-                          Text(
-                            languageProvider.translate(
-                                'II. Global Market (Global Top 5)',
-                                'II. உலகளாவியச் சந்தை (உலகளாவிய முதல் 5)'),
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Global Cars List
-                    ...carLaunchesProvider.globalCars
-                        .asMap()
-                        .entries
-                        .map((entry) {
-                      final index =
-                          entry.key + 100; // Offset to avoid conflicts
-                      final car = entry.value;
-                      return _CarLaunchCard(
-                        car: car,
-                        index: index,
-                        isExpanded: _expandedCars[index] ?? false,
-                        onToggle: () {
-                          setState(() {
-                            _expandedCars[index] =
-                                !(_expandedCars[index] ?? false);
-                          });
-                        },
-                      );
-                    }),
                     // AI Disclaimer with Confidence Score
                     const SizedBox(height: 24),
                     AIDisclaimer(

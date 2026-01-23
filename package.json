@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "AI-Powered Car Intake System",
   "scripts": {
-    "build": "if [ ! -d build/web ]; then echo 'Error: build/web directory not found. Please run: flutter build web --release'; exit 1; else echo 'Using pre-built Flutter web app from build/web directory'; fi",
-    "vercel-build": "if [ ! -d build/web ]; then echo 'Error: build/web directory not found. Please run: flutter build web --release'; exit 1; else echo 'Using pre-built Flutter web app from build/web directory'; fi"
+    "build": "flutter build web --release",
+    "vercel-build": "flutter build web --release"
   }
 }
 
