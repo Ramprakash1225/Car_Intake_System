@@ -11,7 +11,7 @@ class AuthProvider with ChangeNotifier {
 
   // Get user name based on mobile number
   String? getUserName() {
-    if (_mobileNumber == '9999900000') {
+    if (_mobileNumber == '9894973012') {
       return 'Mr. PalaniKumar';
     }
     return null;
@@ -31,13 +31,16 @@ class AuthProvider with ChangeNotifier {
   Future<bool> login(String mobileNumber) async {
     final cleaned = mobileNumber.replaceAll(RegExp(r'[^0-9]'), '');
 
-    // Only allow specific mobile number: 9999900000
-    if (cleaned == '9999900000') {
+    // Only allow specific mobile number: 9894973012
+    if (cleaned == '9894973012') {
       _isAuthenticated = true;
       _mobileNumber = cleaned;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isAuthenticated', true);
       await prefs.setString('mobileNumber', cleaned);
+      
+      // Set flag to show welcome dialog (will be cleared when dialog is dismissed)
+      await prefs.setBool('show_welcome_dialog', true);
 
       // Initialize user data storage if not exists
       final userDataKey = 'user_data_$cleaned';
@@ -49,6 +52,18 @@ class AuthProvider with ChangeNotifier {
       return true;
     }
     return false;
+  }
+  
+  // Check if welcome dialog should be shown
+  Future<bool> shouldShowWelcomeDialog() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('show_welcome_dialog') ?? false;
+  }
+  
+  // Clear welcome dialog flag
+  Future<void> clearWelcomeDialogFlag() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('show_welcome_dialog', false);
   }
 
   Future<void> logout() async {

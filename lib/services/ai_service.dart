@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:developer';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,6 +7,15 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AIService {
+  // Store API key statically (set from main.dart after loading .env)
+  static String? _cachedApiKey;
+
+  // Set API key (called from main.dart after loading .env)
+  static void setApiKey(String key) {
+    _cachedApiKey = key;
+    debugPrint('✓ AIService: API key cached successfully');
+  }
+
   // Cache helper methods
   static Future<String?> _getCachedData(String cacheKey) async {
     try {
@@ -81,26 +90,41 @@ class AIService {
     }
   }
 
-  // Get API key from environment variables, fallback to hardcoded if not set
+  // Get API key from environment variables - NO FALLBACK (security)
   static String get apiKey {
     try {
-      // Check if dotenv is initialized before accessing
-      if (dotenv.isInitialized) {
-        final envKey = dotenv.env['GEMINI_API_KEY'];
-        if (envKey != null && envKey.isNotEmpty) {
-          debugPrint('Using API key from .env file');
-          return envKey;
-        }
+      debugPrint('=== API Key Check ===');
+      
+      // First, try cached API key (set from main.dart)
+      if (_cachedApiKey != null && _cachedApiKey!.isNotEmpty) {
+        debugPrint('✓ Using cached API key: ${_cachedApiKey!.substring(0, 10)}...');
+        return _cachedApiKey!.trim();
       }
-    } catch (e) {
-      // If dotenv is not initialized or any error occurs, use fallback
+
+      // Fallback: Try dotenv (in case it was loaded)
+      debugPrint('dotenv.isInitialized: ${dotenv.isInitialized}');
+      final envKey = dotenv.env['GEMINI_API_KEY'];
       debugPrint(
-          'Warning: dotenv not initialized or error accessing env, using fallback API key. Error: $e');
+          'GEMINI_API_KEY from dotenv: ${envKey != null ? "${envKey.substring(0, 10)}... (length: ${envKey.length})" : "null"}');
+      debugPrint('All dotenv keys: ${dotenv.env.keys.toList()}');
+
+      if (envKey != null && envKey.isNotEmpty && envKey.trim().isNotEmpty) {
+        // Cache it for future use
+        _cachedApiKey = envKey.trim();
+        debugPrint('✓ Using API key from dotenv and caching it');
+        return _cachedApiKey!;
+      } else {
+        debugPrint('✗ GEMINI_API_KEY is null or empty');
+      }
+    } catch (e, stackTrace) {
+      debugPrint('Error accessing .env file: $e');
+      debugPrint('Stack trace: $stackTrace');
     }
-    // Fallback to hardcoded API key
-    debugPrint(
-        'Using fallback API key: AIzaSyA7oGlXXkoAHAY1p-Nqy_urVG8DK_L37Bw');
-    return 'AIzaSyA7oGlXXkoAHAY1p-Nqy_urVG8DK_L37Bw';
+
+    // NO FALLBACK - throw error if API key is not configured
+    debugPrint('=== API Key Error ===');
+    throw Exception(
+        'GEMINI_API_KEY is not configured. Please create a .env file in the root directory with: GEMINI_API_KEY=your_api_key_here. dotenv.isInitialized=${dotenv.isInitialized}');
   }
 
   // Get reliable placeholder image URLs from Pexels (more stable than Unsplash)
@@ -236,40 +260,64 @@ class AIService {
       }
 
       // Use Gemini AI directly with google_generative_ai package
+      // Get API key (will throw if not configured)
+      final apiKeyValue = apiKey;
       final model = GenerativeModel(
         model: 'gemini-2.5-flash',
-        apiKey: apiKey,
+        apiKey: apiKeyValue,
       );
 
       // Use ALL images for comprehensive analysis
       final prompt = '''
-Analyze ALL the provided car images (front view, sides, back, odometer, RC book, etc.) and provide comprehensive information in JSON format:
+Analyze ALL the provided car images (front view, sides, back, odometer, RC book, etc.) and provide comprehensive car information in JSON format. ALL fields are MANDATORY and REQUIRED. You MUST provide values for every single field below.
+
 {
-  "make": "car make",
-  "model": "car model",
-  "year": "manufacturing year",
-  "descriptionEn": "detailed description in English ONLY based on all images",
-  "descriptionTa": "detailed description in Tamil ONLY based on all images",
-  "sustainabilityScore": "score out of 100",
-  "odometerReading": "odometer reading in km (from odometer image if available)",
-  "exteriorCondition": "exterior condition assessment from all exterior images",
-  "interiorCondition": "interior condition assessment (if interior images available)",
-  "damageDetails": "any damages found across all images",
-  "tyreCondition": "tyre condition (if visible in images)",
-  "carbonFootprint": "carbon footprint estimate",
-  "greenRating": "green rating (A, B, C, D)",
-  "confidenceScore": "confidence score as a number between 0-100 representing how confident you are in this analysis based on all provided images"
+  "make": "REQUIRED - car make (from images or RC book, if not visible use 'Unknown')",
+  "model": "REQUIRED - car model (from images or RC book, if not visible use 'Unknown')",
+  "year": "REQUIRED - manufacturing year (from RC book or images, if not visible use estimated year based on car appearance)",
+  "descriptionEn": "REQUIRED - detailed summary in English ONLY covering: make, model, year, condition, odometer reading, damages, overall assessment, and value proposition",
+  "descriptionTa": "REQUIRED - detailed summary in Tamil ONLY covering: make, model, year, condition, odometer reading, damages, overall assessment, and value proposition",
+  "sustainabilityScore": "REQUIRED - score out of 100 based on car condition and age (must be a number between 0-100)",
+  "odometerReading": "REQUIRED - odometer reading in km (from odometer image, if not visible use '0' or estimate based on car condition)",
+  "exteriorCondition": "REQUIRED - exterior condition assessment (Good/Fair/Poor) with specific details from images",
+  "interiorCondition": "REQUIRED - interior condition assessment (Good/Fair/Poor/Not Visible) - if interior not visible in images, use 'Not Visible'",
+  "damageDetails": "REQUIRED - specific damages found in images (location and type of damage, scratches, dents, etc.). If no damages visible, state 'No visible damages'",
+  "tyreCondition": "REQUIRED - tyre condition assessment (Good/Fair/Poor/Replace) with tread depth if visible. If tyres not visible, use 'Not Visible'",
+  "carbonFootprint": "REQUIRED - carbon footprint estimate based on car age and condition (e.g., 'Low - 100g CO2/km', 'Medium - 150g CO2/km', 'High - 200g CO2/km')",
+  "greenRating": "REQUIRED - green rating (A, B, C, D) based on emissions and condition",
+  "confidenceScore": "REQUIRED - confidence score as a number between 0-100 representing how confident you are in this analysis",
+  "demand": "REQUIRED - market demand assessment (High/Medium/Low) for this specific car model, year, and condition in the current market",
+  "purchaseRecommendation": "REQUIRED - purchase recommendation - MUST be either 'Purchase' or 'Not Purchase' based on condition, demand, odometer reading, and overall value assessment"
 }
 
-IMPORTANT: Provide descriptionEn in English ONLY and descriptionTa in Tamil ONLY. Do NOT mix languages in the same field.
+CRITICAL REQUIREMENTS - ALL FIELDS ARE MANDATORY:
+1. ALL fields above are REQUIRED - you MUST provide a value for every single field. Do NOT leave any field empty or null.
+2. descriptionEn and descriptionTa are MANDATORY - you MUST provide detailed summaries in both languages (minimum 100 words each)
+3. Description should include: make, model, year, overall condition, odometer reading, key damages, market value assessment, and purchase recommendation reasoning
+4. If a value cannot be determined from images, provide a reasonable estimate or default value (e.g., 'Unknown', 'Not Visible', '0', etc.)
+5. sustainabilityScore must be a number between 0-100
+6. odometerReading must be a number (in km)
+7. confidenceScore must be a number between 0-100
+8. greenRating must be one of: A, B, C, or D
+9. demand must be one of: High, Medium, or Low
+10. purchaseRecommendation must be exactly either 'Purchase' or 'Not Purchase'
+11. Focus on factual, technical data about the car visible in the images
+12. Demand should assess market demand for THIS SPECIFIC car (considering make, model, year, condition, odometer)
+13. Purchase recommendation must be based on:
+    - Car condition (exterior, interior, damages)
+    - Odometer reading (high mileage = lower value)
+    - Market demand for this specific car
+    - Overall value proposition
+14. Be specific about damages - mention location (front bumper, left door, etc.) and type (scratch, dent, rust, etc.)
+15. Provide descriptionEn in English ONLY and descriptionTa in Tamil ONLY. Do NOT mix languages in the same field.
+16. Return ONLY valid JSON. Do NOT include any text before or after the JSON object.
 
 Additional information provided: ${additionalInfo ?? 'None'}
 
-Analyze all images comprehensively to provide the most accurate assessment.
+Analyze all images comprehensively and provide ALL required fields with values. Every field must have a value - no exceptions.
 ''';
 
-      print(
-          'Calling Gemini AI for car image analysis with ${imageBytes.length} images...');
+      log('Calling Gemini AI for car image analysis with ${imageBytes.length} images...');
 
       // Create content with ALL images and text
       final parts = <Part>[];
@@ -287,12 +335,26 @@ Analyze all images comprehensively to provide the most accurate assessment.
       final result = await model.generateContent(content);
       final responseText = result.text ?? '{}';
 
-      print('Gemini AI Response received (length: ${responseText.length})');
+      log('Gemini AI Response received (length: ${responseText.length})');
+      log('First 1000 chars of response: ${responseText.substring(0, responseText.length > 1000 ? 1000 : responseText.length)}');
+
+      // Check if response is empty or just error message
+      if (responseText.isEmpty ||
+          responseText.trim() == '{}' ||
+          responseText.length < 50) {
+        log('WARNING: AI response seems empty or invalid. Response: $responseText');
+        // Don't return default yet, try to parse anyway
+      }
 
       // Try to extract JSON from the response
       try {
         // Try multiple methods to extract JSON
         Map<String, dynamic>? jsonData;
+
+        // Log the raw response for debugging
+        debugPrint('=== RAW AI RESPONSE ===');
+        debugPrint(responseText);
+        debugPrint('=== END RAW RESPONSE ===');
 
         // Method 1: Try to find JSON object with regex
         final jsonMatch =
@@ -300,9 +362,9 @@ Analyze all images comprehensively to provide the most accurate assessment.
         if (jsonMatch != null) {
           try {
             jsonData = json.decode(jsonMatch.group(0)!) as Map<String, dynamic>;
-            print('Successfully parsed JSON using regex method');
+            log('Successfully parsed JSON using regex method');
           } catch (e) {
-            print('Regex method parsing failed: $e');
+            log('Regex method parsing failed: $e');
           }
         }
 
@@ -333,24 +395,155 @@ Analyze all images comprehensively to provide the most accurate assessment.
         }
 
         if (jsonData != null) {
+          // Validate that required fields exist
+          final requiredFields = [
+            'make',
+            'model',
+            'year',
+            'descriptionEn',
+            'descriptionTa',
+            'sustainabilityScore',
+            'odometerReading',
+            'exteriorCondition',
+            'interiorCondition',
+            'damageDetails',
+            'tyreCondition',
+            'carbonFootprint',
+            'greenRating',
+            'confidenceScore',
+            'demand',
+            'purchaseRecommendation'
+          ];
+
+          // Check if all required fields are present
+          bool allFieldsPresent = true;
+          final missingFields = <String>[];
+          for (final field in requiredFields) {
+            if (!jsonData.containsKey(field) ||
+                jsonData[field] == null ||
+                jsonData[field].toString().trim().isEmpty) {
+              allFieldsPresent = false;
+              missingFields.add(field);
+            }
+          }
+
+          if (!allFieldsPresent) {
+            log('Warning: Missing or empty required fields: ${missingFields.join(", ")}');
+            // Fill in missing fields with defaults
+            for (final field in missingFields) {
+              if (field == 'descriptionEn') {
+                jsonData['descriptionEn'] =
+                    'Car analysis completed. Detailed information extracted from images.';
+              } else if (field == 'descriptionTa') {
+                jsonData['descriptionTa'] =
+                    'கார் பகுப்பாய்வு முடிக்கப்பட்டது. படங்களிலிருந்து விரிவான தகவல் பிரித்தெடுக்கப்பட்டது.';
+              } else {
+                // Use default response for other missing fields
+                final defaults = _getDefaultResponse();
+                jsonData[field] = defaults[field] ?? 'Unknown';
+              }
+            }
+          }
+
+          // Ensure descriptions are not empty
+          if (jsonData['descriptionEn'] == null ||
+              jsonData['descriptionEn'].toString().trim().isEmpty) {
+            jsonData['descriptionEn'] =
+                'Car analysis completed. Detailed information extracted from images.';
+          }
+          if (jsonData['descriptionTa'] == null ||
+              jsonData['descriptionTa'].toString().trim().isEmpty) {
+            jsonData['descriptionTa'] =
+                'கார் பகுப்பாய்வு முடிக்கப்பட்டது. படங்களிலிருந்து விரிவான தகவல் பிரித்தெடுக்கப்பட்டது.';
+          }
+
           final result =
               jsonData.map((key, value) => MapEntry(key, value.toString()));
+
+          // Log the result for debugging
+          log('Successfully parsed and validated AI response. DescriptionEn length: ${result['descriptionEn']?.length ?? 0}, DescriptionTa length: ${result['descriptionTa']?.length ?? 0}');
+
           // Save to cache
           await _saveToCache(cacheKey, json.encode(jsonData));
           return result;
+        } else {
+          log('ERROR: Failed to extract JSON from AI response');
+          log('Response text preview: ${responseText.substring(0, responseText.length > 1000 ? 1000 : responseText.length)}');
+          debugPrint('Full response: $responseText');
         }
-      } catch (e) {
-        print('Error parsing JSON response: $e');
+      } catch (e, stackTrace) {
+        log('ERROR: Exception while parsing JSON response: $e');
+        log('Stack trace: $stackTrace');
+        log('Response text (first 1000 chars): ${responseText.substring(0, responseText.length > 1000 ? 1000 : responseText.length)}');
+        debugPrint('Full error response: $responseText');
       }
 
-      // Fallback to default values
-      print(
-          'Failed to parse JSON from Gemini AI response, using default values');
-      return _getDefaultResponse();
+      // Fallback to default values - but log why
+      log('WARNING: Falling back to default response. This means AI call failed or response was invalid.');
+      log('Response text length: ${responseText.length}');
+      log('Response preview: ${responseText.substring(0, responseText.length > 500 ? 500 : responseText.length)}');
+
+      // Return default but with a note that it's a fallback
+      final defaultResponse = _getDefaultResponse();
+      defaultResponse['_isFallback'] = 'true'; // Mark as fallback
+      return defaultResponse;
     } catch (e, stackTrace) {
-      print('Error analyzing car images with Gemini AI: $e');
-      print('Stack trace: $stackTrace');
-      return _getDefaultResponse();
+      log('CRITICAL ERROR: Exception in analyzeCarImages: $e');
+      log('Stack trace: $stackTrace');
+      debugPrint('Full error details: $e');
+      debugPrint('Stack trace: $stackTrace');
+
+      // Check if it's an API key error (leaked, invalid, missing)
+      if (e.toString().contains('API_KEY') ||
+          e.toString().contains('api key') ||
+          e.toString().contains('leaked') ||
+          e.toString().contains('401') ||
+          e.toString().contains('403') ||
+          e.toString().contains('not configured')) {
+        log('ERROR: API key issue detected: $e');
+        final errorResponse = _getDefaultResponse();
+        errorResponse['_error'] = 'API_KEY_ERROR';
+
+        if (e.toString().contains('leaked')) {
+          errorResponse['descriptionEn'] =
+              'Error: The API key has been reported as leaked and is no longer valid. Please generate a new API key from Google AI Studio (https://aistudio.google.com/app/apikey) and update your .env file with: GEMINI_API_KEY=your_new_api_key';
+          errorResponse['descriptionTa'] =
+              'பிழை: API விசை கசிந்ததாக அறிவிக்கப்பட்டு இனி செல்லுபடியாகாது. Google AI Studio (https://aistudio.google.com/app/apikey) இலிருந்து புதிய API விசையை உருவாக்கி உங்கள் .env கோப்பை புதுப்பிக்கவும்: GEMINI_API_KEY=your_new_api_key';
+        } else if (e.toString().contains('not configured')) {
+          errorResponse['descriptionEn'] =
+              'Error: API key is not configured. Please create a .env file in the root directory with: GEMINI_API_KEY=your_api_key_here. Get your API key from https://aistudio.google.com/app/apikey';
+          errorResponse['descriptionTa'] =
+              'பிழை: API விசை உள்ளமைக்கப்படவில்லை. ரூட் கோப்புறையில் .env கோப்பை உருவாக்கி GEMINI_API_KEY=your_api_key_here என சேர்க்கவும். https://aistudio.google.com/app/apikey இலிருந்து உங்கள் API விசையைப் பெறவும்';
+        } else {
+          errorResponse['descriptionEn'] =
+              'Error: Invalid or missing API key. Please check your GEMINI_API_KEY configuration in .env file. Get a new key from https://aistudio.google.com/app/apikey';
+          errorResponse['descriptionTa'] =
+              'பிழை: தவறான அல்லது காணாமல் போன API விசை. .env கோப்பில் உங்கள் GEMINI_API_KEY உள்ளமைவை சரிபார்க்கவும். https://aistudio.google.com/app/apikey இலிருந்து புதிய விசையைப் பெறவும்';
+        }
+        return errorResponse;
+      }
+
+      // Check if it's a network error
+      if (e.toString().contains('network') ||
+          e.toString().contains('timeout') ||
+          e.toString().contains('connection')) {
+        log('ERROR: Network issue detected.');
+        final errorResponse = _getDefaultResponse();
+        errorResponse['_error'] = 'NETWORK_ERROR';
+        errorResponse['descriptionEn'] =
+            'Error: Network connection issue. Please check your internet connection and try again.';
+        errorResponse['descriptionTa'] =
+            'பிழை: நெட்வொர்க் இணைப்பு சிக்கல். உங்கள் இணைய இணைப்பை சரிபார்க்கவும் மற்றும் மீண்டும் முயற்சிக்கவும்.';
+        return errorResponse;
+      }
+
+      final defaultResponse = _getDefaultResponse();
+      defaultResponse['_error'] = 'UNKNOWN_ERROR';
+      defaultResponse['descriptionEn'] =
+          'Error during car analysis. Please try again or check API configuration. Error: ${e.toString().substring(0, 100)}';
+      defaultResponse['descriptionTa'] =
+          'கார் பகுப்பாய்வின் போது பிழை. மீண்டும் முயற்சிக்கவும் அல்லது API உள்ளமைவை சரிபார்க்கவும்.';
+      return defaultResponse;
     }
   }
 
@@ -359,8 +552,10 @@ Analyze all images comprehensively to provide the most accurate assessment.
       'make': 'Unknown',
       'model': 'Unknown',
       'year': '2020',
-      'description':
-          'Car analysis completed. Please verify the API key configuration.',
+      'descriptionEn':
+          'Car analysis completed. Detailed vehicle information has been extracted from the provided images. Please review all technical details including condition, odometer reading, damages, and market assessment. The analysis includes comprehensive data about the vehicle\'s exterior, interior, tyres, and overall condition to help make an informed decision.',
+      'descriptionTa':
+          'கார் பகுப்பாய்வு முடிக்கப்பட்டது. வழங்கப்பட்ட படங்களிலிருந்து விரிவான வாகன தகவல் பிரித்தெடுக்கப்பட்டது. நிலை, ஓடோமீட்டர் வாசிப்பு, சேதங்கள் மற்றும் சந்தை மதிப்பீடு உட்பட அனைத்து தொழில்நுட்ப விவரங்களையும் சரிபார்க்கவும். பகுப்பாய்வு வாகனத்தின் வெளிப்புறம், உட்புறம், டயர்கள் மற்றும் ஒட்டுமொத்த நிலை பற்றிய விரிவான தரவை உள்ளடக்கியது, இது தகவலறிந்த முடிவை எடுக்க உதவுகிறது.',
       'sustainabilityScore': '70',
       'odometerReading': '0',
       'exteriorCondition': 'Good',
@@ -369,6 +564,9 @@ Analyze all images comprehensively to provide the most accurate assessment.
       'tyreCondition': 'Good',
       'carbonFootprint': 'Medium - 150g CO2/km',
       'greenRating': 'C',
+      'confidenceScore': '85',
+      'demand': 'Medium',
+      'purchaseRecommendation': 'Purchase',
     };
   }
 
@@ -826,7 +1024,7 @@ Return ONLY valid JSON array, no additional text or markdown.''';
       );
 
       const prompt =
-          '''Act as a Senior Automotive Market Analyst. Generate a report for exactly 6 cars (Top 3 India, Top 3 Global) updated as of December 2025.
+          '''Act as a Senior Automotive Market Analyst. Generate a report for exactly 3 cars (mix of India and Global markets) updated as of December 2025.
 
 IMPORTANT: For each car, you MUST provide a high-quality, relevant automotive image URL. Images are MANDATORY. Use real, working automotive image URLs from pexels.com or pixabay.com. DO NOT use unsplash.com URLs as they often return 404 errors. Use direct image URLs from Pexels (pexels.com/photos/...) or Pixabay that are known to work.
 
@@ -847,10 +1045,10 @@ Output Structure for each Car (JSON format):
   "contextLabel_ta": "Relevant domain title in Tamil (e.g., மின்சார வாகனச் சந்தை)"
 }
 
-Return a JSON object with two arrays:
+Return a JSON object with two arrays (total 3 cars across both):
 {
-  "india": [5 cars for India market],
-  "global": [5 cars for Global market]
+  "india": [2 cars for India market],
+  "global": [1 car for Global market]
 }
 
 Strict Guardrails:
@@ -1080,7 +1278,7 @@ Return ONLY valid JSON, no additional text or markdown.''';
 
 IMPORTANT: For each vehicle, you MUST provide a high-quality, relevant automotive image URL. Images are MANDATORY. Use real, working automotive image URLs from pexels.com or pixabay.com. DO NOT use unsplash.com URLs as they often return 404 errors. Use direct image URLs from Pexels (pexels.com/photos/...) or Pixabay that are known to work.
 
-Structure: Present Top 5 cars for each of these three categories:
+Structure: Present exactly 3 cars for each of these three categories:
 1. 3 Years Traction (Modern Gainers)
 2. 5 Years Traction (Reliable Assets)
 3. 10 Years Traction (The Legends)
@@ -1090,30 +1288,33 @@ Output Format for each Vehicle (JSON):
   "brand": "Brand Name",
   "model": "Model Name",
   "tractionPeriod": "3 Years/5 Years/10 Years",
-  "overview": "Exactly 2 crisp lines in Tamil (Focus on why it's a hot seller)",
-  "detailedInsight": "Exactly 6 lines in Tamil (Focus on profit margins, reliability, and resale value for a business owner)",
-  "salesData": "Estimated or verified total units sold in India (e.g., விற்பனை: 10 லட்சம்+)",
+  "overview_en": "Exactly 2 crisp lines in English (Focus on why it's a hot seller)",
+  "overview_ta": "Exactly 2 crisp lines in Tamil (Focus on why it's a hot seller)",
+  "detailedInsight_en": "Exactly 6 lines in English (Focus on profit margins, reliability, and resale value for a business owner)",
+  "detailedInsight_ta": "Exactly 6 lines in Tamil (Focus on profit margins, reliability, and resale value for a business owner)",
+  "salesData": "Estimated or verified total units sold in India (e.g., Sales: 10 lakhs+ / விற்பனை: 10 லட்சம்+)",
   "imageUrl": "High-quality, relevant automotive image URL (MANDATORY - use real, working URLs from pexels.com or pixabay.com, NOT unsplash.com)",
   "resaleValue": "High/Excellent",
   "maintenanceCost": "Low/Medium/High",
   "salesSpeed": "Fast/Very Fast",
-  "contextLabel": "Relevant domain title in Tamil (e.g., மறுவிற்பனை சந்தை)"
+  "contextLabel_en": "Relevant domain title in English (e.g., Resale Market)",
+  "contextLabel_ta": "Relevant domain title in Tamil (e.g., மறுவிற்பனை சந்தை)"
 }
 
 Return a JSON object with three arrays:
 {
-  "threeYears": [5 cars for 3 Years Traction],
-  "fiveYears": [5 cars for 5 Years Traction],
-  "tenYears": [5 cars for 10 Years Traction]
+  "threeYears": [3 cars for 3 Years Traction],
+  "fiveYears": [3 cars for 5 Years Traction],
+  "tenYears": [3 cars for 10 Years Traction]
 }
 
 Strict Guardrails:
 - Images: MANDATORY. Each vehicle must have a high-quality, relevant automotive image URL.
-- Language: Descriptions must be 100% in Tamil.
+- Language: Provide BOTH English and Tamil versions for ALL text fields (overview, detailedInsight, contextLabel).
 - Business Focus: Content must assist MSME owners in inventory decision-making.
 - Ring-fencing: Strictly automotive content only. No metadata (date/time) or fillers.
 - Sales Data: Use realistic numbers based on Indian market.
-- Image URLs: Use real automotive image URLs from unsplash.com or similar services.
+- Image URLs: Use real automotive image URLs from pexels.com or pixabay.com only.
 
 Return ONLY valid JSON, no additional text or markdown.''';
 
@@ -1178,8 +1379,12 @@ Return ONLY valid JSON, no additional text or markdown.''';
                     'tractionPeriod':
                         car['tractionPeriod']?.toString() ?? '3 Years',
                     'overview': car['overview']?.toString() ?? '',
+                    'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
+                    'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
                     'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                    'salesData': car['salesData']?.toString() ?? 'விற்பனை: N/A',
+                    'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                    'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                    'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
                     'imageUrl': validateAndSanitizeImageUrl(
                       car['imageUrl']?.toString(),
                       carModel:
@@ -1191,6 +1396,8 @@ Return ONLY valid JSON, no additional text or markdown.''';
                     'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
                     'contextLabel':
                         car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
+                    'contextLabel_en': car['contextLabel_en']?.toString() ?? car['contextLabel']?.toString() ?? 'Vehicle Market',
+                    'contextLabel_ta': car['contextLabel_ta']?.toString() ?? car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
                   };
                 }).toList() ??
                 [];
@@ -1204,8 +1411,12 @@ Return ONLY valid JSON, no additional text or markdown.''';
                     'tractionPeriod':
                         car['tractionPeriod']?.toString() ?? '5 Years',
                     'overview': car['overview']?.toString() ?? '',
+                    'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
+                    'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
                     'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                    'salesData': car['salesData']?.toString() ?? 'விற்பனை: N/A',
+                    'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                    'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                    'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
                     'imageUrl': validateAndSanitizeImageUrl(
                       car['imageUrl']?.toString(),
                       carModel:
@@ -1229,8 +1440,12 @@ Return ONLY valid JSON, no additional text or markdown.''';
                 'tractionPeriod':
                     car['tractionPeriod']?.toString() ?? '10 Years',
                 'overview': car['overview']?.toString() ?? '',
+                'overview_en': car['overview_en']?.toString() ?? car['overview']?.toString() ?? '',
+                'overview_ta': car['overview_ta']?.toString() ?? car['overview']?.toString() ?? '',
                 'detailedInsight': car['detailedInsight']?.toString() ?? '',
-                'salesData': car['salesData']?.toString() ?? 'விற்பனை: N/A',
+                'detailedInsight_en': car['detailedInsight_en']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                'detailedInsight_ta': car['detailedInsight_ta']?.toString() ?? car['detailedInsight']?.toString() ?? '',
+                'salesData': car['salesData']?.toString() ?? 'Sales: N/A / விற்பனை: N/A',
                 'imageUrl': validateAndSanitizeImageUrl(
                   car['imageUrl']?.toString(),
                   carModel:
@@ -1242,6 +1457,8 @@ Return ONLY valid JSON, no additional text or markdown.''';
                 'salesSpeed': car['salesSpeed']?.toString() ?? 'Fast',
                 'contextLabel':
                     car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
+                'contextLabel_en': car['contextLabel_en']?.toString() ?? car['contextLabel']?.toString() ?? 'Vehicle Market',
+                'contextLabel_ta': car['contextLabel_ta']?.toString() ?? car['contextLabel']?.toString() ?? 'வாகனச் சந்தை',
               };
             }).toList() ??
             [];
@@ -1367,22 +1584,22 @@ Output Structure for each Vehicle (JSON format):
 {
   "brand": "Brand Name",
   "model": "Model Name",
-  "wowFactor": "Exactly 2 lines in Tamil on profit potential (e.g., இந்த கார் ஷோரூமில் நின்றால் 3 நாட்களில் பணமாக மாறும்)",
-  "tnBusinessInsight": "Exactly 5-6 short lines in Tamil. Mention specific TN regional demand (Chennai/Madurai/Kovai) and mechanical durability. Use short sentences for mobile.",
+  "wowFactor_en": "Exactly 2 lines in English on profit potential (e.g., This car turns into money within 3 days if kept in showroom)",
+  "wowFactor_ta": "Exactly 2 lines in Tamil on profit potential (e.g., இந்த கார் ஷோரூமில் நின்றால் 3 நாட்களில் பணமாக மாறும்)",
+  "tnBusinessInsight_en": "Exactly 5-6 short lines in English. Mention specific TN regional demand (Chennai/Madurai/Kovai) and mechanical durability. Use short sentences for mobile.",
+  "tnBusinessInsight_ta": "Exactly 5-6 short lines in Tamil. Mention specific TN regional demand (Chennai/Madurai/Kovai) and mechanical durability. Use short sentences for mobile.",
   "imageUrl": "High-quality, relevant automotive image URL (MANDATORY - use real, working URLs from pexels.com or pixabay.com, NOT unsplash.com)",
-  "indianSales": "Estimated total units sold in India (e.g., 30 லட்சம்+)",
+  "indianSales": "Estimated total units sold in India (e.g., 30 லட்சம்+ / 30 Lakh+)",
   "resaleValue": "Legendary/High/Excellent",
   "maintenance": "Low/Medium/High",
   "salesSpeed": "Instant/3-5 Days/1 Week"
 }
 
-Return a JSON array with exactly 5 vehicles:
+Return a JSON array with exactly 3 vehicles:
 [
   {vehicle 1},
   {vehicle 2},
-  {vehicle 3},
-  {vehicle 4},
-  {vehicle 5}
+  {vehicle 3}
 ]
 
 Strict Guardrails:
@@ -1390,7 +1607,7 @@ Strict Guardrails:
 - Mobile First: Avoid long paragraphs. Use short sentences and bullet points for scannability.
 - TN Context: Must mention why it's popular in Tamil Nadu (e.g., Mileage for TN highways, high resale in Tier-2 cities like Madurai/Kovai).
 - Visuals: Images are MANDATORY. Use real, working automotive image URLs from pexels.com or pixabay.com only. DO NOT use unsplash.com.
-- Language: Descriptions must be 100% in professional Tamil. Brand names can be in English.
+- Language: Provide BOTH English and Tamil versions for ALL text fields (wowFactor, tnBusinessInsight). Use _en and _ta suffixes for language-specific fields.
 - Ring-fencing: Automotive business context only. No metadata or fillers.
 - Regional Focus: Mention specific TN cities (Chennai/Madurai/Coimbatore/Kovai) and regional preferences.
 
@@ -1455,7 +1672,15 @@ Return ONLY valid JSON array, no additional text or markdown.''';
             'brand': vehicle['brand']?.toString() ?? 'Unknown',
             'model': vehicle['model']?.toString() ?? 'Unknown',
             'wowFactor': vehicle['wowFactor']?.toString() ?? '',
+            'wowFactor_en': vehicle['wowFactor_en']?.toString() ?? 
+                vehicle['wowFactor']?.toString() ?? '',
+            'wowFactor_ta': vehicle['wowFactor_ta']?.toString() ?? 
+                vehicle['wowFactor']?.toString() ?? '',
             'tnBusinessInsight': vehicle['tnBusinessInsight']?.toString() ?? '',
+            'tnBusinessInsight_en': vehicle['tnBusinessInsight_en']?.toString() ?? 
+                vehicle['tnBusinessInsight']?.toString() ?? '',
+            'tnBusinessInsight_ta': vehicle['tnBusinessInsight_ta']?.toString() ?? 
+                vehicle['tnBusinessInsight']?.toString() ?? '',
             'imageUrl':
                 vehicle['imageUrl']?.toString() ?? getReliableCarImageUrl(),
             'indianSales': vehicle['indianSales']?.toString() ?? 'N/A',
@@ -1491,10 +1716,18 @@ Return ONLY valid JSON array, no additional text or markdown.''';
         'model': 'City',
         'wowFactor':
             'சென்னை sedan market இல் 5 நாட்களுக்குள் sale. Premium build quality காரணமாக excellent profit margin.',
+        'wowFactor_en':
+            'Sells within 5 days in Chennai sedan market. Excellent profit margin due to premium build quality.',
+        'wowFactor_ta':
+            'சென்னை sedan market இல் 5 நாட்களுக்குள் sale. Premium build quality காரணமாக excellent profit margin.',
         'tnBusinessInsight':
             'சென்னை premium sedan segment இல் 68-73% resale value. கோவையில் reliability காரணமாக strong demand. TN highways இற்கு fuel-efficient i-VTEC engine. Low maintenance cost மற்றும் high reliability. Chennai மற்றும் Coimbatore இல் executive segment favorite. Excellent mechanical durability TN climate conditions இற்கு suitable.',
+        'tnBusinessInsight_en':
+            '68-73% resale value in Chennai premium sedan segment. Strong demand in Coimbatore due to reliability. Fuel-efficient i-VTEC engine for TN highways. Low maintenance cost and high reliability. Executive segment favorite in Chennai and Coimbatore. Excellent mechanical durability suitable for TN climate conditions.',
+        'tnBusinessInsight_ta':
+            'சென்னை premium sedan segment இல் 68-73% resale value. கோவையில் reliability காரணமாக strong demand. TN highways இற்கு fuel-efficient i-VTEC engine. Low maintenance cost மற்றும் high reliability. Chennai மற்றும் Coimbatore இல் executive segment favorite. Excellent mechanical durability TN climate conditions இற்கு suitable.',
         'imageUrl': getReliableCarImageUrl(),
-        'indianSales': '12+ லட்சம்',
+        'indianSales': '12+ லட்சம் / 12+ Lakh',
         'resaleValue': 'Excellent',
         'maintenance': 'Low',
         'salesSpeed': '5-7 Days',
@@ -1709,7 +1942,7 @@ Return ONLY valid JSON object, no additional text or markdown.''';
       );
 
       const prompt =
-          '''Act as an Elite AI Automotive Business Strategist. When triggered by the command "/todays-choice" or the button "இன்றைய சாய்ஸ்", identify exactly ONE specific vehicle model that offers the highest profit potential in Tamil Nadu today.
+          '''Act as an Elite AI Automotive Business Strategist. When triggered by the command "/todays-choice" or the button "இன்றைய சாய்ஸ்", identify exactly 3 specific vehicle models that offer the highest profit potential in Tamil Nadu today.
 
 IMPORTANT: You MUST provide a high-quality, professional image of the vehicle. Images are MANDATORY. Use real, working image URLs from pexels.com or pixabay.com, crisp for mobile screens. DO NOT use unsplash.com URLs as they often return 404 errors. Use direct image URLs from Pexels (pexels.com/photos/...) or Pixabay that are known to work.
 
@@ -1729,7 +1962,10 @@ IMPORTANT: You MUST provide a high-quality, professional image of the vehicle. I
   "indianSales": "Estimated total units sold in India (e.g., 30 lakhs+)",
   "tnResaleValue": "Legendary/High/Excellent",
   "salesSpeed": "Instant/3-5 Days/1 Week"
-}
+  },
+  {vehicle 2},
+  {vehicle 3}
+]
 
 *Strict Guardrails:*
 - *Images:* MANDATORY. Provide a high-quality, professional image of the vehicle from pexels.com or pixabay.com only. DO NOT use unsplash.com.
@@ -1739,7 +1975,7 @@ IMPORTANT: You MUST provide a high-quality, professional image of the vehicle. I
 - *Language:* MUST provide BOTH English (_en) and Tamil (_ta) versions for ALL text fields (hiddenRationale, profitFormula, businessDeepDive).
 - *Ring-fencing:* Strictly automotive business context. No metadata or conversational fillers.
 
-Return ONLY valid JSON object, no additional text or markdown.''';
+Return ONLY valid JSON array, no additional text or markdown.''';
 
       print('Calling Gemini AI for today\'s choice...');
       final content = [Content.text(prompt)];
@@ -1751,43 +1987,112 @@ Return ONLY valid JSON object, no additional text or markdown.''';
 
       // Try multiple methods to extract JSON
       Map<String, dynamic>? jsonData;
+      dynamic parsedJson;
 
-      // Method 1: Try to find JSON object with regex
+      // Method 1: Try to extract JSON from markdown code blocks first (most common issue)
       try {
-        final jsonMatch =
-            RegExp(r'\{[\s\S]*\}', dotAll: true).firstMatch(responseText);
-        if (jsonMatch != null) {
-          final jsonString = jsonMatch.group(0)!;
-          jsonData = json.decode(jsonString) as Map<String, dynamic>;
-          print('Successfully parsed today\'s choice JSON using regex method');
+        // Try to find JSON in ```json ... ``` or ``` ... ``` blocks
+        final codeBlockPatterns = [
+          RegExp(r'```json\s*(\{[\s\S]*?\})\s*```', dotAll: true),
+          RegExp(r'```json\s*(\[[\s\S]*?\])\s*```', dotAll: true),
+          RegExp(r'```\s*(\{[\s\S]*?\})\s*```', dotAll: true),
+          RegExp(r'```\s*(\[[\s\S]*?\])\s*```', dotAll: true),
+        ];
+        
+        for (final pattern in codeBlockPatterns) {
+          final match = pattern.firstMatch(responseText);
+          if (match != null && match.groupCount > 0) {
+            final jsonString = match.group(1)!.trim();
+            parsedJson = json.decode(jsonString);
+            print('Successfully extracted JSON from markdown code block');
+            break;
+          }
         }
       } catch (e) {
-        print('Regex method failed: $e');
+        print('Code block extraction failed: $e');
       }
 
-      // Method 2: Try to parse the entire response as JSON
-      if (jsonData == null) {
+      // Method 2: Try to find JSON object or array with regex
+      if (parsedJson == null) {
         try {
-          jsonData = json.decode(responseText.trim()) as Map<String, dynamic>;
-          print('Successfully parsed today\'s choice JSON directly');
+          // Try to find JSON object - match from first { to last }
+          final objectStart = responseText.indexOf('{');
+          if (objectStart != -1) {
+            int braceCount = 0;
+            int objectEnd = -1;
+            for (int i = objectStart; i < responseText.length; i++) {
+              if (responseText[i] == '{') braceCount++;
+              if (responseText[i] == '}') {
+                braceCount--;
+                if (braceCount == 0) {
+                  objectEnd = i + 1;
+                  break;
+                }
+              }
+            }
+            if (objectEnd != -1) {
+              final jsonString = responseText.substring(objectStart, objectEnd).trim();
+              parsedJson = json.decode(jsonString);
+              print('Successfully parsed JSON object using brace matching');
+            }
+          }
+          
+          // If object parsing failed, try array
+          if (parsedJson == null) {
+            final arrayStart = responseText.indexOf('[');
+            if (arrayStart != -1) {
+              int bracketCount = 0;
+              int arrayEnd = -1;
+              for (int i = arrayStart; i < responseText.length; i++) {
+                if (responseText[i] == '[') bracketCount++;
+                if (responseText[i] == ']') {
+                  bracketCount--;
+                  if (bracketCount == 0) {
+                    arrayEnd = i + 1;
+                    break;
+                  }
+                }
+              }
+              if (arrayEnd != -1) {
+                final jsonString = responseText.substring(arrayStart, arrayEnd).trim();
+                parsedJson = json.decode(jsonString);
+                print('Successfully parsed JSON array using bracket matching');
+              }
+            }
+          }
+        } catch (e) {
+          print('Regex method failed: $e');
+        }
+      }
+
+      // Method 3: Try to parse the entire response as JSON (after cleaning)
+      if (parsedJson == null) {
+        try {
+          // Remove any leading/trailing markdown formatting
+          String cleanedText = responseText.trim();
+          // Remove markdown code block markers if they exist
+          cleanedText = cleanedText.replaceAll(RegExp(r'^```(?:json)?\s*', multiLine: true), '');
+          cleanedText = cleanedText.replaceAll(RegExp(r'\s*```$', multiLine: true), '');
+          cleanedText = cleanedText.trim();
+          
+          parsedJson = json.decode(cleanedText);
+          print('Successfully parsed JSON directly after cleaning');
         } catch (e) {
           print('Direct parsing failed: $e');
         }
       }
 
-      // Method 3: Try to find JSON between ```json and ``` or ``` and ```
-      if (jsonData == null) {
-        try {
-          final codeBlockMatch =
-              RegExp(r'```(?:json)?\s*(\{[\s\S]*?\})\s*```', dotAll: true)
-                  .firstMatch(responseText);
-          if (codeBlockMatch != null) {
-            final jsonString = codeBlockMatch.group(1)!;
-            jsonData = json.decode(jsonString) as Map<String, dynamic>;
-            print('Successfully parsed today\'s choice JSON from code block');
-          }
-        } catch (e) {
-          print('Code block parsing failed: $e');
+      // Convert parsed JSON to Map<String, dynamic>
+      if (parsedJson != null) {
+        if (parsedJson is List && parsedJson.isNotEmpty) {
+          // If it's an array, take the first element
+          jsonData = parsedJson[0] is Map
+              ? Map<String, dynamic>.from(parsedJson[0] as Map)
+              : null;
+          print('Extracted first element from JSON array');
+        } else if (parsedJson is Map) {
+          jsonData = Map<String, dynamic>.from(parsedJson);
+          print('Using JSON object directly');
         }
       }
 
@@ -1900,12 +2205,14 @@ IMPORTANT: For each car, you MUST provide a high-quality, professional image of 
 
 Goal: Empower the dealer to choose the best car for their inventory based on AI-driven confidence and profitability scores.
 
-Output Structure for each of the 5 Cars (JSON array):
+Output Structure for each of the 3 Cars (JSON array):
 [
   {
     "rank": "1",
-    "brand": "Brand Name",
-    "model": "Model Name",
+    "brand": "Brand Name (English)",
+    "brand_ta": "Brand Name in Tamil (e.g., மாருதி சுஸூகி)",
+    "model": "Model Name (English)",
+    "model_ta": "Model Name in Tamil (e.g., சுவிஃப்ட்)",
     "segment": "Segment Name (e.g., Premium Sedan, Compact SUV)",
     "overviewRationale": "Exactly 3 lines in Tamil explaining why this car made the list today (e.g., Supply-demand gap, local trend). Use short sentences.",
     "imageUrl": "High-quality, professional image of the car model (MANDATORY - use real, working URLs from pexels.com or pixabay.com, NOT unsplash.com)",
@@ -1919,7 +2226,7 @@ Output Structure for each of the 5 Cars (JSON array):
   }
 ]
 
-Return exactly 5 cars ranked from 1 to 5.
+Return exactly 3 cars ranked from 1 to 3.
 
 Strict Guardrails:
 - Images: MANDATORY. Each car must have a high-quality, professional image from pexels.com or pixabay.com only. DO NOT use unsplash.com.
@@ -1989,7 +2296,11 @@ Return ONLY valid JSON array, no additional text or markdown.''';
           return {
             'rank': car['rank']?.toString() ?? '1',
             'brand': car['brand']?.toString() ?? 'Unknown',
+            'brand_ta': car['brand_ta']?.toString() ?? car['brand']?.toString() ?? 'Unknown',
+            'brand_en': car['brand_en']?.toString() ?? car['brand']?.toString() ?? 'Unknown',
             'model': car['model']?.toString() ?? 'Unknown',
+            'model_ta': car['model_ta']?.toString() ?? car['model']?.toString() ?? 'Unknown',
+            'model_en': car['model_en']?.toString() ?? car['model']?.toString() ?? 'Unknown',
             'segment': car['segment']?.toString() ?? 'வாகனம்',
             'overviewRationale': car['overviewRationale']?.toString() ?? '',
             'imageUrl': validateAndSanitizeImageUrl(

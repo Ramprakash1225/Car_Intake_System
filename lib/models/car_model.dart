@@ -28,6 +28,8 @@ class Car {
   final Uint8List? imageBytes; // Keep for backward compatibility (first image)
   final List<Uint8List>? allImageBytes; // All uploaded images
   final double? confidenceScore;
+  final String? demand; // Market demand for the car
+  final String? purchaseRecommendation; // Purchase recommendation (Purchase/Not Purchase)
 
   Car({
     required this.id,
@@ -51,6 +53,8 @@ class Car {
     this.imageBytes,
     this.allImageBytes,
     this.confidenceScore,
+    this.demand,
+    this.purchaseRecommendation,
   });
 
   String get fullName => '$make $model ($year)';

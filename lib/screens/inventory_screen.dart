@@ -8,7 +8,9 @@ import '../widgets/ai_disclaimer.dart';
 import '../models/car_model.dart';
 
 class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({super.key});
+  final String? initialTab;
+  
+  const InventoryScreen({super.key, this.initialTab});
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -23,7 +25,19 @@ class _InventoryScreenState extends State<InventoryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    // Determine initial tab index based on parameter
+    int initialIndex = 0;
+    if (widget.initialTab == 'approved') {
+      initialIndex = 2;
+      _filterStatus = 'approved';
+    } else if (widget.initialTab == 'pending') {
+      initialIndex = 1;
+      _filterStatus = 'pending';
+    } else {
+      _filterStatus = 'all';
+    }
+    
+    _tabController = TabController(length: 3, vsync: this, initialIndex: initialIndex);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
@@ -55,13 +69,17 @@ class _InventoryScreenState extends State<InventoryScreen>
     final languageProvider = Provider.of<LanguageProvider>(context);
 
     final filteredCars = carProvider.cars.where((car) {
-      // Get description based on current language for search
+      // Search by make, model, description, demand, and purchase recommendation
       final description = languageProvider.isTamil
           ? (car.descriptionTa ?? car.description)
           : (car.descriptionEn ?? car.description);
+      final demand = car.demand ?? '';
+      final purchaseRec = car.purchaseRecommendation ?? '';
       final matchesSearch = _searchQuery.isEmpty ||
           car.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          description.toLowerCase().contains(_searchQuery.toLowerCase());
+          description.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          demand.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          purchaseRec.toLowerCase().contains(_searchQuery.toLowerCase());
 
       final matchesFilter = _filterStatus == 'all' ||
           (_filterStatus == 'pending' && car.status == CarStatus.pending) ||
@@ -145,8 +163,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                                   ),
                                 ),
                                 const SizedBox(height: 16),
-                                _buildStatsCards(
-                                    context, languageProvider, carProvider),
+                                // _buildStatsCards(
+                                //     context, languageProvider, carProvider),
                               ],
                             )
                           : Row(
@@ -391,26 +409,27 @@ class _InventoryScreenState extends State<InventoryScreen>
                   ),
                   const SizedBox(height: 32),
                   // Search
-                  TextField(
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                    decoration: InputDecoration(
-                      hintText: languageProvider.translate(
-                        'Search cars...',
-                        'கார்களைத் தேடவும்...',
-                      ),
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                    ),
-                  ),
+                  // TextField(
+                  //   onChanged: (value) => setState(() => _searchQuery = value),
+                  //   decoration: InputDecoration(
+                  //     hintText: languageProvider.translate(
+                  //       'Search cars...',
+                  //       'கார்களைத் தேடவும்...',
+                  //     ),
+                  //     prefixIcon: const Icon(Icons.search),
+                  //     border: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(8),
+                  //     ),
+                  //     filled: true,
+                  //     fillColor: Colors.grey.shade50,
+                  //   ),
+                  // ),
                   const SizedBox(height: 20),
                   // Tabs for filtering
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final isMobile = constraints.maxWidth < 768;
+
                       return Container(
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
@@ -418,22 +437,29 @@ class _InventoryScreenState extends State<InventoryScreen>
                         ),
                         child: TabBar(
                           controller: _tabController,
+                          labelPadding: EdgeInsets.zero,
                           indicator: BoxDecoration(
                             color: const Color(0xFF1E3A8A),
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          indicatorSize: TabBarIndicatorSize.tab,
                           labelColor: Colors.white,
                           unselectedLabelColor: Colors.grey.shade700,
                           labelStyle: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: isMobile ? 12 : 14,
+                            fontSize: isMobile
+                                ? (languageProvider.isTamil ? 8 : 14)
+                                : (languageProvider.isTamil ? 14 : 16),
                           ),
                           unselectedLabelStyle: TextStyle(
                             fontWeight: FontWeight.normal,
                             fontSize: isMobile ? 12 : 14,
                           ),
-                          isScrollable: isMobile,
-                          tabAlignment: isMobile ? TabAlignment.start : TabAlignment.fill,
+
+                          // 🔴 No horizontal scroll – occupy full width
+                          isScrollable: false,
+                          tabAlignment: TabAlignment.fill,
+
                           tabs: [
                             Tab(
                               height: isMobile ? 48 : 56,
@@ -444,7 +470,6 @@ class _InventoryScreenState extends State<InventoryScreen>
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     const Icon(Icons.directions_car, size: 18),
@@ -467,7 +492,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
@@ -491,7 +517,6 @@ class _InventoryScreenState extends State<InventoryScreen>
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     const Icon(Icons.access_time, size: 18),
@@ -514,7 +539,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
@@ -538,7 +564,6 @@ class _InventoryScreenState extends State<InventoryScreen>
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     const Icon(Icons.check_circle, size: 18),
@@ -561,7 +586,8 @@ class _InventoryScreenState extends State<InventoryScreen>
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color:
+                                            Colors.white.withValues(alpha: 0.3),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Text(
@@ -581,6 +607,7 @@ class _InventoryScreenState extends State<InventoryScreen>
                       );
                     },
                   ),
+
                   const SizedBox(height: 24),
                   // Car Grid
                   LayoutBuilder(
@@ -615,198 +642,6 @@ class _InventoryScreenState extends State<InventoryScreen>
       ),
     );
   }
-}
-
-Widget _buildStatsCards(BuildContext context, LanguageProvider languageProvider,
-    CarProvider carProvider) {
-  return Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.check_circle,
-              color: Colors.green,
-              size: 24,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              languageProvider.translate(
-                'Car Inventory',
-                'கார் சரக்கு',
-              ),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.green,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.directions_car,
-                      color: Colors.green,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      languageProvider.translate(
-                        'Total Cars',
-                        'மொத்த கார்கள்',
-                      ),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      carProvider.totalCars.toString(),
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.blue.shade300,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.access_time,
-                      color: Colors.blue.shade300,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      languageProvider.translate(
-                        'Pending',
-                        'நிலுவையில்',
-                      ),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      carProvider.pendingCars.toString(),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade300,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.green.shade600,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      color: Colors.green.shade600,
-                      size: 28,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      languageProvider.translate(
-                        'Approved',
-                        'அனுமதிக்கப்பட்டது',
-                      ),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      carProvider.approvedCars.toString(),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
 }
 
 class _CarCard extends StatelessWidget {
@@ -905,21 +740,75 @@ class _CarCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      // Show description based on selected language
-                      languageProvider.isTamil
-                          ? (car.descriptionTa ?? car.description)
-                          : (car.descriptionEn ?? car.description),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        height: 1.4,
+                    // const SizedBox(height: 6),
+                    // // Summary/Description (Compulsory)
+                    // Text(
+                    //   // Show description based on selected language
+                    //   languageProvider.isTamil
+                    //       ? (car.descriptionTa ?? car.description)
+                    //       : (car.descriptionEn ?? car.description),
+                    //   style: TextStyle(
+                    //     fontSize: 12,
+                    //     color: Colors.grey.shade700,
+                    //     height: 1.4,
+                    //   ),
+                    //   maxLines: 2,
+                    //   overflow: TextOverflow.ellipsis,
+                    // ),
+                    const SizedBox(height: 16),
+                    // Market Demand and Purchase Recommendation
+                    if (car.demand != null ||
+                        car.purchaseRecommendation != null) ...[
+                      Row(
+                        children: [
+                          if (car.demand != null) ...[
+                            Icon(Icons.trending_up,
+                                size: 14, color: Colors.blue.shade700),
+                            const SizedBox(width: 4),
+                            Text(
+                              car.demand!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ],
+                          if (car.demand != null &&
+                              car.purchaseRecommendation != null)
+                            const SizedBox(width: 12),
+                          if (car.purchaseRecommendation != null) ...[
+                            Icon(
+                              car.purchaseRecommendation!
+                                      .toLowerCase()
+                                      .contains('purchase')
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              size: 14,
+                              color: car.purchaseRecommendation!
+                                      .toLowerCase()
+                                      .contains('purchase')
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              car.purchaseRecommendation!,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: car.purchaseRecommendation!
+                                        .toLowerCase()
+                                        .contains('purchase')
+                                    ? Colors.green.shade700
+                                    : Colors.red.shade700,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
+                      const SizedBox(height: 16),
+                    ],
                     // Sustainability Score
                     Row(
                       children: [

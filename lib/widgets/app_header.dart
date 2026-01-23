@@ -81,9 +81,12 @@ class AppHeader extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Aathiksh AutoMart',
-                      style: TextStyle(
+                    Text(
+                      languageProvider.translate(
+                        'Aathiksh AutoMart',
+                        'ஆத்திக்ஷ் ஆட்டோமார்ட்',
+                      ),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -97,7 +100,7 @@ class AppHeader extends StatelessWidget {
                     Text(
                       languageProvider.translate(
                         'The Precision of Pre-Owned',
-                        'பழையவற்றின் துல்லியம்',
+                        'கார்களின் துல்லியம்',
                       ),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
@@ -225,18 +228,25 @@ class AppHeader extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Aathiksh AutoMart',
-                  style: TextStyle(
+                Text(
+                  languageProvider.translate(
+                    'Aathiksh AutoMart',
+                    'ஆத்திக்ஷ் ஆட்டோமார்ட்',
+                  ),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
+                    // fontSize: isMobile
+                    //     ? (languageProvider.isTamil ? 8 : 14)
+                    //     : (languageProvider.isTamil ? 14 : 16),
+
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   languageProvider.translate(
                     'The Precision of Pre-Owned',
-                    'பழையவற்றின் துல்லியம்',
+                    'கார்களின் துல்லியம்',
                   ),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.8),
@@ -258,14 +268,14 @@ class AppHeader extends StatelessWidget {
               route: '/dashboard',
               currentRoute: currentRoute,
             ),
-            const SizedBox(width: 8),
+            //const SizedBox(width: 8),
             _NavButton(
               label: languageProvider.translate(
                   'Analyze New Car', 'கார் பகுப்பாய்வு'),
               route: '/analyze',
               currentRoute: currentRoute,
             ),
-            const SizedBox(width: 8),
+            //const SizedBox(width: 8),
             _NavButton(
               label: languageProvider.translate(
                   'View Analyzed car', 'பகுப்பாய்வு செய்யப்பட்ட கார்'),
@@ -331,6 +341,7 @@ class _NavButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isActive = currentRoute == route;
     final isMobile = MediaQuery.of(context).size.width < 768;
+    final languageProvider = Provider.of<LanguageProvider>(context);
 
     return TextButton(
       onPressed: () => context.go(route),
@@ -353,7 +364,9 @@ class _NavButton extends StatelessWidget {
         label,
         style: TextStyle(
           fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          fontSize: isMobile ? 14 : 16,
+          fontSize: isMobile
+              ? (languageProvider.isTamil ? 10 : 14)
+              : (languageProvider.isTamil ? 14 : 16),
         ),
       ),
     );
@@ -510,7 +523,7 @@ void showResetDialog(BuildContext context, LanguageProvider languageProvider,
                             Provider.of<CarProvider>(context, listen: false);
                         carProvider.clearAllCars();
                         await authProvider.clearAllData();
-                        
+
                         // Clear AI cache to force fresh API calls on next request
                         await AIService.clearAICache();
 

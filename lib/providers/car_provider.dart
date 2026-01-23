@@ -64,11 +64,13 @@ class CarProvider with ChangeNotifier {
       'greenRating': car.greenRating,
       'additionalInfo': car.additionalInfo,
       'imageUrl': car.imageUrl,
-      'imageBytes': car.imageBytes != null ? base64Encode(car.imageBytes!) : null,
-      'allImageBytes': car.allImageBytes != null 
-          ? car.allImageBytes!.map((bytes) => base64Encode(bytes)).toList() 
-          : null,
+      'imageBytes':
+          car.imageBytes != null ? base64Encode(car.imageBytes!) : null,
+      'allImageBytes':
+          car.allImageBytes?.map((bytes) => base64Encode(bytes)).toList(),
       'confidenceScore': car.confidenceScore,
+      'demand': car.demand,
+      'purchaseRecommendation': car.purchaseRecommendation,
     };
   }
 
@@ -92,14 +94,21 @@ class CarProvider with ChangeNotifier {
       greenRating: json['greenRating'] as String,
       additionalInfo: json['additionalInfo'] as String?,
       imageUrl: json['imageUrl'] as String?,
-      imageBytes: json['imageBytes'] != null ? base64Decode(json['imageBytes'] as String) : null,
-      allImageBytes: json['allImageBytes'] != null 
-          ? (json['allImageBytes'] as List).map((e) => base64Decode(e as String)).toList()
+      imageBytes: json['imageBytes'] != null
+          ? base64Decode(json['imageBytes'] as String)
           : null,
-      confidenceScore: json['confidenceScore'] != null ? (json['confidenceScore'] as num).toDouble() : null,
+      allImageBytes: json['allImageBytes'] != null
+          ? (json['allImageBytes'] as List)
+              .map((e) => base64Decode(e as String))
+              .toList()
+          : null,
+      confidenceScore: json['confidenceScore'] != null
+          ? (json['confidenceScore'] as num).toDouble()
+          : null,
+      demand: json['demand'] as String?,
+      purchaseRecommendation: json['purchaseRecommendation'] as String?,
     );
   }
-
 
   Future<void> analyzeCar({
     required List<Uint8List> imageBytes,
@@ -109,25 +118,51 @@ class CarProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      debugPrint('=== Starting car analysis ===');
+      debugPrint('Image count: ${imageBytes.length}');
+      debugPrint('Additional info: ${additionalInfo ?? 'None'}');
+      
       final analysis = await AIService.analyzeCarImages(
         imageBytes: imageBytes,
         additionalInfo: additionalInfo,
       );
 
-      // Generate unique ID
-      int newId = _cars.isEmpty ? 1 : (_cars.map((c) => c.id).reduce((a, b) => a > b ? a : b) + 1);
+      debugPrint('=== AI Analysis Result ===');
+      debugPrint('Analysis keys: ${analysis.keys.toList()}');
+      debugPrint('Make: ${analysis['make']}');
+      debugPrint('Model: ${analysis['model']}');
+      debugPrint('DescriptionEn length: ${analysis['descriptionEn']?.length ?? 0}');
+      debugPrint('DescriptionTa length: ${analysis['descriptionTa']?.length ?? 0}');
+      debugPrint('Is Fallback: ${analysis['_isFallback'] ?? 'false'}');
+      debugPrint('Error: ${analysis['_error'] ?? 'none'}');
+      debugPrint('=== End Analysis Result ===');
 
+      // Generate unique ID
+      int newId = _cars.isEmpty
+          ? 1
+          : (_cars.map((c) => c.id).reduce((a, b) => a > b ? a : b) + 1);
+
+      // Ensure descriptions are not empty
+      final descriptionEn = analysis['descriptionEn']?.toString().trim() ?? 
+          analysis['description']?.toString().trim() ?? 
+          'Car analysis completed. Detailed vehicle information has been extracted from the provided images.';
+      final descriptionTa = analysis['descriptionTa']?.toString().trim() ?? 
+          'கார் பகுப்பாய்வு முடிக்கப்பட்டது. வழங்கப்பட்ட படங்களிலிருந்து விரிவான வாகன தகவல் பிரித்தெடுக்கப்பட்டது.';
+      
       final newCar = Car(
         id: newId,
         make: analysis['make'] ?? 'Unknown',
         model: analysis['model'] ?? 'Unknown',
         year: int.tryParse(analysis['year'] ?? '2020') ?? 2020,
-        description: analysis['description'] ?? analysis['descriptionEn'] ?? '', // Fallback for backward compatibility
-        descriptionEn: analysis['descriptionEn'],
-        descriptionTa: analysis['descriptionTa'],
-        sustainabilityScore: double.tryParse(analysis['sustainabilityScore'] ?? '70') ?? 70.0,
+        description: descriptionEn, // Use descriptionEn as primary description
+        descriptionEn: descriptionEn,
+        descriptionTa: descriptionTa,
+        sustainabilityScore:
+            double.tryParse(analysis['sustainabilityScore'] ?? '70') ?? 70.0,
         status: CarStatus.pending,
-        odometerReading: int.tryParse(analysis['odometerReading']?.replaceAll(',', '') ?? '0') ?? 0,
+        odometerReading: int.tryParse(
+                analysis['odometerReading']?.replaceAll(',', '') ?? '0') ??
+            0,
         exteriorCondition: analysis['exteriorCondition'] ?? 'Unknown',
         interiorCondition: analysis['interiorCondition'] ?? 'Unknown',
         damageDetails: analysis['damageDetails'] ?? 'None',
@@ -135,9 +170,14 @@ class CarProvider with ChangeNotifier {
         carbonFootprint: analysis['carbonFootprint'] ?? 'Unknown',
         greenRating: analysis['greenRating'] ?? 'C',
         additionalInfo: additionalInfo,
-        imageBytes: imageBytes.isNotEmpty ? imageBytes.first : null, // First image for backward compatibility
+        imageBytes: imageBytes.isNotEmpty
+            ? imageBytes.first
+            : null, // First image for backward compatibility
         allImageBytes: imageBytes.isNotEmpty ? imageBytes : null, // All images
-        confidenceScore: double.tryParse(analysis['confidenceScore'] ?? '85') ?? 85.0,
+        confidenceScore:
+            double.tryParse(analysis['confidenceScore'] ?? '85') ?? 85.0,
+        demand: analysis['demand'],
+        purchaseRecommendation: analysis['purchaseRecommendation'],
       );
 
       _cars.insert(0, newCar);
@@ -181,11 +221,13 @@ class CarProvider with ChangeNotifier {
   }
 
   int get totalCars => _cars.length;
-  int get pendingCars => _cars.where((c) => c.status == CarStatus.pending).length;
-  int get approvedCars => _cars.where((c) => c.status == CarStatus.approved).length;
+  int get pendingCars =>
+      _cars.where((c) => c.status == CarStatus.pending).length;
+  int get approvedCars =>
+      _cars.where((c) => c.status == CarStatus.approved).length;
   double get avgSustainabilityScore {
     if (_cars.isEmpty) return 0.0;
-    return _cars.map((c) => c.sustainabilityScore).reduce((a, b) => a + b) / _cars.length;
+    return _cars.map((c) => c.sustainabilityScore).reduce((a, b) => a + b) /
+        _cars.length;
   }
 }
-

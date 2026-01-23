@@ -10,6 +10,7 @@ import '../providers/ai_usage_provider.dart';
 import '../providers/car_provider.dart';
 import '../providers/language_provider.dart';
 import '../widgets/app_header.dart';
+import '../widgets/modern_loader.dart';
 
 class AnalyzeCarScreen extends StatefulWidget {
   const AnalyzeCarScreen({super.key});
@@ -57,12 +58,38 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
     });
   }
 
-  int get _requiredUploads => _uploadedFiles['frontView'] != null ? 1 : 0;
-  int get _totalRequired => 1;
+  int get _requiredUploads {
+    int count = 0;
+    if (_uploadedFiles['frontView'] != null) count++;
+    if (_uploadedFiles['backView'] != null) count++;
+    if (_uploadedFiles['rightSide'] != null) count++;
+    if (_uploadedFiles['leftSide'] != null) count++;
+    if (_uploadedFiles['odometer'] != null) count++;
+    if (_uploadedFiles['rcBook'] != null) count++;
+    return count;
+  }
+
+  int get _totalRequired => 6;
   double get _uploadProgress => _requiredUploads / _totalRequired;
 
   Future<void> _analyzeCar() async {
-    if (_uploadedFiles['frontView'] == null) {
+    // Check if all required images are uploaded
+    final requiredKeys = [
+      'frontView',
+      'backView',
+      'rightSide',
+      'leftSide',
+      'odometer',
+      'rcBook'
+    ];
+    final missingKeys = <String>[];
+    for (final key in requiredKeys) {
+      if (_uploadedFiles[key] == null) {
+        missingKeys.add(key);
+      }
+    }
+
+    if (missingKeys.isNotEmpty) {
       final languageProvider =
           Provider.of<LanguageProvider>(context, listen: false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,6 +111,15 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
     final carProvider = Provider.of<CarProvider>(context, listen: false);
     final languageProvider =
         Provider.of<LanguageProvider>(context, listen: false);
+
+    // Show modern loader
+    showModernLoader(
+      context,
+      message: languageProvider.translate(
+        'Analyzing car...',
+        'கார் பகுப்பாய்வு செய்கிறது...',
+      ),
+    );
 
     try {
       // Get image bytes from uploaded files
@@ -124,22 +160,53 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
       await aiUsageProvider.markAIFeatureUsed();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              languageProvider.translate(
-                'Car analyzed successfully!',
-                'கார் வெற்றிகரமாக பகுப்பாய்வு செய்யப்பட்டது!',
+        // Check if analysis was successful (not a fallback)
+        final car = carProvider.cars.isNotEmpty ? carProvider.cars.first : null;
+        final hasRealData = car != null &&
+            (car.descriptionEn?.isNotEmpty ?? false) &&
+            car.make != 'Unknown';
+
+        if (hasRealData) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                languageProvider.translate(
+                  'Car analyzed successfully!',
+                  'கார் வெற்றிகரமாக பகுப்பாய்வு செய்யப்பட்டது!',
+                ),
               ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                languageProvider.translate(
+                  'Car analysis completed, but some data may be missing. Please check API configuration.',
+                  'கார் பகுப்பாய்வு முடிக்கப்பட்டது, ஆனால் சில தரவு காணாமல் போயிருக்கலாம். API உள்ளமைவை சரிபார்க்கவும்.',
+                ),
+              ),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+        // Hide loader before navigation
+        if (mounted) {
+          hideModernLoader(context);
+          // Small delay to ensure loader is dismissed before navigation
+          await Future.delayed(const Duration(milliseconds: 100));
+        }
         // Navigate to inventory
-        context.go('/inventory');
+        if (mounted) {
+          context.go('/inventory');
+        }
       }
     } catch (e) {
+      debugPrint('Error in analyze car: $e');
       if (mounted) {
+        hideModernLoader(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -155,6 +222,8 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
     } finally {
       if (mounted) {
         setState(() => _isAnalyzing = false);
+        // Ensure loader is hidden (safe to call multiple times)
+        hideModernLoader(context);
       }
     }
   }
@@ -162,6 +231,8 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider>(context);
+    final isMobile = MediaQuery.of(context).size.width < 768;
+
     // final authProvider = Provider.of<AuthProvider>(context);
     // final userName = authProvider.getUserName();
 
@@ -266,6 +337,7 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                   // Hero Section
                   Container(
                     width: double.infinity,
+                    height: 210,
                     padding: EdgeInsets.all(
                         MediaQuery.of(context).size.width < 768 ? 20 : 40),
                     decoration: BoxDecoration(
@@ -284,16 +356,22 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(
+                          height: 54,
+                        ),
                         Text(
                           languageProvider.translate(
                               'Analyze New Car', 'புதிய கார் பகுப்பாய்வு'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 36,
+                            // fontSize: 36,
+                            fontSize: isMobile
+                                ? (languageProvider.isTamil ? 18 : 36)
+                                : (languageProvider.isTamil ? 14 : 36),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        // const SizedBox(height: 8),
                         Text(
                           languageProvider.translate(
                             'Upload structured car photos for comprehensive analysis',
@@ -301,46 +379,144 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                           ),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 16,
+                            fontSize: isMobile
+                                ? (languageProvider.isTamil ? 10 : 16)
+                                : (languageProvider.isTamil ? 14 : 16),
                           ),
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    Colors.white.withValues(alpha: 0.2),
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text(
-                                languageProvider.translate(
-                                  'Structured Upload',
-                                  'கட்டமைக்கப்பட்ட பதிவேற்றம்',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade300,
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text(
-                                languageProvider.translate(
-                                  'Instant Results',
-                                  'உடனடி முடிவுகள்',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+
+                        // Row(
+                        //   children: [
+                        //     ElevatedButton(
+                        //       onPressed: () {},
+                        //       style: ElevatedButton.styleFrom(
+                        //         backgroundColor:
+                        //             Colors.white.withValues(alpha: 0.2),
+                        //         foregroundColor: Colors.white,
+                        //       ),
+                        //       child: Text(
+                        //         languageProvider.translate(
+                        //           'Structured Upload',
+                        //           'கட்டமைக்கப்பட்ட பதிவேற்றம்',
+                        //         ),
+                        //       ),
+                        //     ),
+                        //     const SizedBox(width: 16),
+                        //     ElevatedButton(
+                        //       onPressed: () {},
+                        //       style: ElevatedButton.styleFrom(
+                        //         backgroundColor: Colors.blue.shade300,
+                        //         foregroundColor: Colors.white,
+                        //       ),
+                        //       child: Text(
+                        //         languageProvider.translate(
+                        //           'Instant Results',
+                        //           'உடனடி முடிவுகள்',
+                        //         ),
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+
+                  if (_requiredUploads < _totalRequired) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue.shade700),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  languageProvider.translate(
+                                    'Note',
+                                    'குறிப்பு',
+                                  ),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  languageProvider.translate(
+                                    ' please upload more photos for detail and accurate  analyze',
+                                    'விவரம் மற்றும் துல்லியமான பகுப்பாய்விற்கு கூடுதல் புகைப்படங்களை பதிவேற்றவும்.',
+                                  ),
+                                  style: TextStyle(
+                                    // fontSize: 12,
+                                    fontSize: isMobile
+                                        ? (languageProvider.isTamil ? 10 : 14)
+                                        : (languageProvider.isTamil ? 14 : 12),
+                                    color: Colors.blue.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // if (_requiredUploads < _totalRequired) ...[
+                  //   const SizedBox(height: 16),
+                  //   Container(
+                  //     padding: const EdgeInsets.all(16),
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.orange.shade50,
+                  //       borderRadius: BorderRadius.circular(8),
+                  //       border: Border.all(color: Colors.orange.shade200),
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         Icon(Icons.warning, color: Colors.orange.shade700),
+                  //         const SizedBox(width: 12),
+                  //         Expanded(
+                  //           child: Column(
+                  //             crossAxisAlignment: CrossAxisAlignment.start,
+                  //             children: [
+                  //               Text(
+                  //                 languageProvider.translate(
+                  //                   'Please upload all mandatory photos before analyzing',
+                  //                   'பகுப்பாய்வு செய்வதற்கு முன் அனைத்து கட்டாய புகைப்படங்களையும் பதிவேற்றவும்',
+                  //                 ),
+                  //                 style: TextStyle(
+                  //                   fontWeight: FontWeight.bold,
+                  //                   color: Colors.orange.shade900,
+                  //                 ),
+                  //               ),
+                  //               const SizedBox(height: 4),
+                  //               Text(
+                  //                 languageProvider.translate(
+                  //                   'Please complete all required sections ($_requiredUploads/$_totalRequired) to proceed with analysis.',
+                  //                   'பகுப்பாய்வைத் தொடர, அனைத்து தேவையான பிரிவுகளையும் ($_requiredUploads/$_totalRequired) முடிக்கவும்.',
+                  //                 ),
+                  //                 style: TextStyle(
+                  //                   fontSize: 12,
+                  //                   color: Colors.orange.shade800,
+                  //                 ),
+                  //               ),
+                  //             ],
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ],
+                  const SizedBox(
+                    height: 16,
+                  ),
                   // Progress Bar
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -424,7 +600,7 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                     onRemove: () => _removeFile('frontView'),
                   ),
                   const SizedBox(height: 16),
-                  // Back View (Optional)
+                  // Back View (Required)
                   _UploadSection(
                     title: languageProvider.translate(
                         'Back View', 'பின்புற பார்வை'),
@@ -432,14 +608,14 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                       'Full rear view of the vehicle',
                       'வாகனத்தின் முழு பின்புற பார்வை',
                     ),
-                    isRequired: false,
+                    isRequired: true,
                     icon: Icons.directions_car_outlined,
                     file: _uploadedFiles['backView'],
                     onUpload: () => _pickFile('backView'),
                     onRemove: () => _removeFile('backView'),
                   ),
                   const SizedBox(height: 16),
-                  // Right Side View (Optional)
+                  // Right Side View (Required)
                   _UploadSection(
                     title: languageProvider.translate(
                         'Right Side View', 'வலது பக்க பார்வை'),
@@ -447,14 +623,14 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                       'Complete right side profile',
                       'முழு வலது பக்க சுயவிவரம்',
                     ),
-                    isRequired: false,
+                    isRequired: true,
                     icon: Icons.arrow_forward,
                     file: _uploadedFiles['rightSide'],
                     onUpload: () => _pickFile('rightSide'),
                     onRemove: () => _removeFile('rightSide'),
                   ),
                   const SizedBox(height: 16),
-                  // Left Side View (Optional)
+                  // Left Side View (Required)
                   _UploadSection(
                     title: languageProvider.translate(
                         'Left Side View', 'இடது பக்க பார்வை'),
@@ -462,7 +638,7 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                       'Complete left side profile',
                       'முழு இடது பக்க சுயவிவரம்',
                     ),
-                    isRequired: false,
+                    isRequired: true,
                     icon: Icons.arrow_back,
                     file: _uploadedFiles['leftSide'],
                     onUpload: () => _pickFile('leftSide'),
@@ -470,7 +646,7 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Odometer Reading (Optional)
+                  // Odometer Reading (Required)
                   _UploadSection(
                     title: languageProvider.translate(
                         'Odometer Reading', 'ஓடோமீட்டர் வாசிப்பு'),
@@ -478,21 +654,21 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                       'Close-up photo of odometer display',
                       'ஓடோமீட்டர் காட்சியின் நெருக்கமான புகைப்படம்',
                     ),
-                    isRequired: false,
+                    isRequired: true,
                     icon: Icons.speed,
                     file: _uploadedFiles['odometer'],
                     onUpload: () => _pickFile('odometer'),
                     onRemove: () => _removeFile('odometer'),
                   ),
                   const SizedBox(height: 16),
-                  // RC Book (Optional)
+                  // RC Book (Required)
                   _UploadSection(
                     title: languageProvider.translate('RC Book', 'RC புத்தகம்'),
                     description: languageProvider.translate(
                       'Registration certificate document',
                       'பதிவு சான்றிதழ் ஆவணம்',
                     ),
-                    isRequired: false,
+                    isRequired: true,
                     icon: Icons.description,
                     file: _uploadedFiles['rcBook'],
                     onUpload: () => _pickFile('rcBook'),
@@ -617,51 +793,6 @@ class _AnalyzeCarScreenState extends State<AnalyzeCarScreen> {
                       ),
                     ),
                   ),
-                  if (_requiredUploads < _totalRequired) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.warning, color: Colors.orange.shade700),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  languageProvider.translate(
-                                    'Please upload all mandatory photos before analyzing',
-                                    'பகுப்பாய்வு செய்வதற்கு முன் அனைத்து கட்டாய புகைப்படங்களையும் பதிவேற்றவும்',
-                                  ),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.orange.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  languageProvider.translate(
-                                    'Please complete all required sections ($_requiredUploads/$_totalRequired) to proceed with analysis.',
-                                    'பகுப்பாய்வைத் தொடர, அனைத்து தேவையான பிரிவுகளையும் ($_requiredUploads/$_totalRequired) முடிக்கவும்.',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.orange.shade800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -694,6 +825,7 @@ class _UploadSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final languageProvider = Provider.of<LanguageProvider>(context);
+    final isMobile = MediaQuery.of(context).size.width < 768;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -739,8 +871,11 @@ class _UploadSection extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
+                      style: TextStyle(
+                        // fontSize: 16,
+                        fontSize: isMobile
+                            ? (languageProvider.isTamil ? 10 : 16)
+                            : (languageProvider.isTamil ? 14 : 16),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -758,7 +893,10 @@ class _UploadSection extends StatelessWidget {
                         child: Text(
                           languageProvider.translate('Required', 'தேவையானது'),
                           style: TextStyle(
-                            fontSize: 12,
+                            //fontSize: 12,
+                            fontSize: isMobile
+                                ? (languageProvider.isTamil ? 8 : 12)
+                                : (languageProvider.isTamil ? 14 : 12),
                             color: Colors.red.shade700,
                             fontWeight: FontWeight.bold,
                           ),
@@ -778,7 +916,10 @@ class _UploadSection extends StatelessWidget {
                           languageProvider.translate(
                               'Optional', 'விருப்பமானது'),
                           style: TextStyle(
-                            fontSize: 12,
+                            // fontSize: 12,
+                            fontSize: isMobile
+                                ? (languageProvider.isTamil ? 8 : 12)
+                                : (languageProvider.isTamil ? 14 : 12),
                             color: Colors.grey.shade600,
                           ),
                         ),
@@ -792,7 +933,10 @@ class _UploadSection extends StatelessWidget {
           Text(
             description,
             style: TextStyle(
-              fontSize: 14,
+              //fontSize: 14,
+              fontSize: isMobile
+                  ? (languageProvider.isTamil ? 10 : 14)
+                  : (languageProvider.isTamil ? 14 : 14),
               color: Colors.grey.shade600,
             ),
           ),
@@ -973,7 +1117,10 @@ class _UploadSection extends StatelessWidget {
                             style: TextStyle(
                               color: Colors.grey.shade700,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              // fontSize: 16,
+                              fontSize: isMobile
+                                  ? (languageProvider.isTamil ? 10 : 16)
+                                  : (languageProvider.isTamil ? 14 : 16),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -981,7 +1128,10 @@ class _UploadSection extends StatelessWidget {
                             languageProvider.translate(
                                 'or drag and drop', 'அல்லது இழுத்து விடவும்'),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: isMobile
+                                  ? (languageProvider.isTamil ? 10 : 14)
+                                  : (languageProvider.isTamil ? 14 : 14),
+                              //fontSize: 14,
                               color: Colors.grey.shade500,
                             ),
                           ),

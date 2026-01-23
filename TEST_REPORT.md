@@ -6,7 +6,7 @@
 ## ✅ Configuration Updates Completed
 
 ### 1. API Key Configuration
-- ✅ Updated `.env` file with new API key: `AIzaSyA7oGlXXkoAHAY1p-Nqy_urVG8DK_L37Bw`
+- ✅ Updated `.env` file with new API key: `AIzaSyCnIqu_wbb-aHv3d9idWAP-0FnBfRlvzO0`
 - ✅ Fixed `ai_service.dart` to correctly read from `GEMINI_API_KEY` environment variable
 - ✅ Updated fallback API key to new key
 - ✅ All API calls now use the new API key
@@ -82,7 +82,7 @@
 - ✅ TN Market Kings: Code ready, needs API call test
 - ✅ Daily Strategy: Code ready, needs API call test
 - ✅ Today's Choice: Code ready, needs API call test
-- ✅ Top 5 Picks: Code ready, needs API call test
+- ✅ Top 3 Picks: Code ready, needs API call test
 
 ## 📊 Expected API Response Format
 
@@ -166,7 +166,7 @@ flutter run -d chrome --web-port=8080
    - Click "TN Market Kings" CTA → Verify top 5 vehicles
    - Click "Daily Strategy" CTA → Verify strategy loads
    - Click "Today's Choice" CTA → Verify recommendation loads
-   - Click "Top 5 Picks" CTA → Verify comparative report
+   - Click "Top 3 Picks" CTA → Verify comparative report
 
 ### API Testing Checklist
 - [ ] Open browser DevTools (F12) → Network tab

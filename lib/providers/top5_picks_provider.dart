@@ -33,13 +33,14 @@ class Top5PicksProvider with ChangeNotifier {
       final cachedJson = prefs.getString(_cacheKey);
       if (cachedJson != null && cachedJson.isNotEmpty) {
         final List<dynamic> cachedList = json.decode(cachedJson);
-        _picks = cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
+        _picks =
+            cachedList.map((item) => Map<String, dynamic>.from(item)).toList();
         _isUsingFallbackData = false;
-        debugPrint('Loaded ${_picks.length} top 5 picks from cache');
+        debugPrint('Loaded ${_picks.length} top 3 picks from cache');
         notifyListeners();
       }
     } catch (e) {
-      debugPrint('Error loading cached top 5 picks: $e');
+      debugPrint('Error loading cached top 3 picks: $e');
     }
   }
 
@@ -47,10 +48,11 @@ class Top5PicksProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, json.encode(data));
-      await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
-      debugPrint('Saved top 5 picks to cache');
+      await prefs.setString(
+          _cacheTimestampKey, DateTime.now().toIso8601String());
+      debugPrint('Saved top 3 picks to cache');
     } catch (e) {
-      debugPrint('Error saving top 5 picks to cache: $e');
+      debugPrint('Error saving top 3 picks to cache: $e');
     }
   }
 
@@ -76,13 +78,15 @@ class Top5PicksProvider with ChangeNotifier {
 
     try {
       debugPrint('Loading top 5 business picks from Gemini AI...');
-      final picks = await AIService.generateTop5BusinessPicks(forceRefresh: forceRefresh);
-      
+      final picks =
+          await AIService.generateTop5BusinessPicks(forceRefresh: forceRefresh);
+
       if (picks.isNotEmpty) {
         _picks = picks;
         _isUsingFallbackData = false;
         await _saveToCache(picks);
-        debugPrint('Successfully loaded ${picks.length} top 5 picks from Gemini AI and saved to cache');
+        debugPrint(
+            'Successfully loaded ${picks.length} top 3 picks from Gemini AI and saved to cache');
       } else {
         // If AI returned empty, use fallback
         _picks = AIService.getDefaultTop5BusinessPicks();
@@ -90,7 +94,7 @@ class Top5PicksProvider with ChangeNotifier {
         debugPrint('AI returned empty, using fallback data');
       }
     } catch (e, stackTrace) {
-      debugPrint('Error loading top 5 picks: $e');
+      debugPrint('Error loading top 3 picks: $e');
       debugPrint('Stack trace: $stackTrace');
       _error = e.toString();
       // Use fallback data on error
@@ -117,4 +121,3 @@ class Top5PicksProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

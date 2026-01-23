@@ -6,6 +6,7 @@ import '../providers/language_provider.dart';
 import '../providers/ai_usage_provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/ai_disclaimer.dart';
+import '../widgets/modern_loader.dart';
 import '../utils/language_helper.dart';
 
 class PopularCarsScreen extends StatefulWidget {
@@ -157,7 +158,19 @@ class _PopularCarsScreenState extends State<PopularCarsScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => popularCarsProvider.loadPopularCars(forceRefresh: true),
+                              onPressed: () async {
+                                showModernLoader(
+                                  context,
+                                  message: languageProvider.translate(
+                                    'Refreshing popular cars...',
+                                    'பிரபலமான கார்களை புதுப்பிக்கிறது...',
+                                  ),
+                                );
+                                await popularCarsProvider.loadPopularCars(forceRefresh: true);
+                                if (context.mounted) {
+                                  hideModernLoader(context);
+                                }
+                              },
                               icon: const Icon(Icons.refresh, color: Colors.white),
                               tooltip: languageProvider.translate('Refresh', 'புதுப்பிக்க'),
                             ),

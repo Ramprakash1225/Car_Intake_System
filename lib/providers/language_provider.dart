@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LanguageProvider with ChangeNotifier {
-  Locale _currentLocale = const Locale('en');
+  Locale _currentLocale = const Locale('ta'); // Default to Tamil
 
   Locale get currentLocale => _currentLocale;
   bool get isTamil => _currentLocale.languageCode == 'ta';
@@ -13,7 +13,7 @@ class LanguageProvider with ChangeNotifier {
 
   Future<void> _loadLanguage() async {
     final prefs = await SharedPreferences.getInstance();
-    final langCode = prefs.getString('language') ?? 'en';
+    final langCode = prefs.getString('language') ?? 'ta'; // Default to Tamil
     _currentLocale = Locale(langCode);
     notifyListeners();
   }

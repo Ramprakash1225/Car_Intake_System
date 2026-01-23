@@ -15,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _mobileController = TextEditingController();
+  final _mobileController = TextEditingController(text: '9894973012');
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
@@ -33,21 +33,29 @@ class _LoginScreenState extends State<LoginScreen> {
           Provider.of<LanguageProvider>(context, listen: false);
 
       final mobileNumber = _mobileController.text;
+      final cleanedMobileNumber =
+          mobileNumber.replaceAll(RegExp(r'[^0-9]'), '');
       final success = await authProvider.login(mobileNumber);
 
       setState(() => _isLoading = false);
 
       if (success) {
         if (mounted) {
-          // Show welcome dialog for specific mobile number
-          if (mobileNumber == '9999900000') {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (context) => const WelcomeDialog(),
-            );
+          // Show welcome dialog for specific mobile number (use cleaned version for comparison)
+          if (cleanedMobileNumber == '9894973012') {
+            // Use post-frame callback to ensure dialog shows before any router redirect
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const WelcomeDialog(),
+                );
+              }
+            });
+            // Don't navigate - let the welcome dialog handle navigation
           } else {
-          context.go('/dashboard');
+            context.go('/dashboard');
           }
         }
       } else {
@@ -99,15 +107,18 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.white,
           backgroundImage: const AssetImage('assets/logos/aathiksh_logo.jpeg'),
         ),
-
-        //const SizedBox(height: 8),
         Text(
-          languageProvider.translate('Welcome Back', 'மீண்டும் வரவேற்கிறோம்'),
-          style: TextStyle(
-            fontSize: isMobile ? 28 : 22,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF1E3A8A),
+          languageProvider.translate(
+            'Welcome',
+            'வரவேற்கிறோம்',
           ),
+          style: TextStyle(
+            fontSize: isMobile
+                ? (languageProvider.isTamil ? 24 : 40)
+                : (languageProvider.isTamil ? 14 : 16),
+            color: Colors.grey.shade600,
+          ),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
         Text(
@@ -270,6 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildMobileLayout(
       BuildContext context, LanguageProvider languageProvider) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -307,10 +319,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Aathiksh AutoMart',
+                        languageProvider.translate(
+                          'Aathiksh AutoMart',
+                          'ஆத்திக்ஷ் ஆட்டோமார்ட்',
+                        ),
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          //fontSize: 28,
+                          fontSize: isMobile
+                              ? (languageProvider.isTamil ? 24 : 40)
+                              : (languageProvider.isTamil ? 14 : 16),
                           fontWeight: FontWeight.bold,
                           shadows: [
                             Shadow(
@@ -326,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         languageProvider.translate(
                           'The Precision of Pre-Owned',
-                          'பழையவற்றின் துல்லியம்',
+                          'கார்களின் துல்லியம்',
                         ),
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.9),
@@ -408,7 +426,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Aathiksh AutoMart',
+                                languageProvider.translate(
+                                  'Aathiksh AutoMart',
+                                  'ஆத்திக்ஷ் ஆட்டோமார்ட்',
+                                ),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 36,
@@ -426,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Text(
                                 languageProvider.translate(
                                   'The Precision of Pre-Owned',
-                                  'பழையவற்றின் துல்லியம்',
+                                  'கார்களின் துல்லியம்',
                                 ),
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.9),

@@ -5,6 +5,7 @@ import '../providers/language_provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/ai_disclaimer.dart';
 import '../widgets/feature_image.dart';
+import '../widgets/modern_loader.dart';
 import '../utils/language_helper.dart';
 import '../utils/image_helper.dart';
 
@@ -141,8 +142,20 @@ class _DailyStrategyScreenState extends State<DailyStrategyScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => dailyStrategyProvider
-                                  .loadDailyStrategy(forceRefresh: true),
+                              onPressed: () async {
+                                showModernLoader(
+                                  context,
+                                  message: languageProvider.translate(
+                                    'Refreshing daily strategy...',
+                                    'இன்றைய வியூகத்தை புதுப்பிக்கிறது...',
+                                  ),
+                                );
+                                await dailyStrategyProvider
+                                    .loadDailyStrategy(forceRefresh: true);
+                                if (context.mounted) {
+                                  hideModernLoader(context);
+                                }
+                              },
                               icon: const Icon(Icons.refresh,
                                   color: Colors.white, size: 20),
                               tooltip: languageProvider.translate(

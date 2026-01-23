@@ -58,6 +58,7 @@ flutter:
     - assets/logos/
     - assets/fallback/
     - .env
+    - assets/.env
 
 flutter_launcher_icons:
   android: true

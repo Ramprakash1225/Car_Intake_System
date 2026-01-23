@@ -19,7 +19,7 @@ import '../screens/top5_picks_screen.dart';
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/login',
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final isLoggedIn = authProvider.isAuthenticated;
       final isLoginPage = state.matchedLocation == '/login';
@@ -27,8 +27,12 @@ class AppRouter {
       if (!isLoggedIn && !isLoginPage) {
         return '/login';
       }
+      // Don't redirect if welcome dialog should be shown
       if (isLoggedIn && isLoginPage) {
-        return '/dashboard';
+        final shouldShowWelcome = await authProvider.shouldShowWelcomeDialog();
+        if (!shouldShowWelcome) {
+          return '/dashboard';
+        }
       }
       return null;
     },
@@ -47,7 +51,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/inventory',
-        builder: (context, state) => const InventoryScreen(),
+        builder: (context, state) {
+          final tab = state.uri.queryParameters['tab'];
+          return InventoryScreen(initialTab: tab);
+        },
       ),
       GoRoute(
         path: '/car/:id',

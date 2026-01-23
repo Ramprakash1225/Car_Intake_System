@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/language_provider.dart';
+import '../providers/auth_provider.dart';
 
 class WelcomeDialog extends StatelessWidget {
   const WelcomeDialog({super.key});
@@ -16,7 +17,7 @@ class WelcomeDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Container(
         width: isMobile ? double.infinity : 640,
-        height: isMobile ? 560 : 520,
+        height: isMobile ? 500 : 520,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           gradient: const LinearGradient(
@@ -54,19 +55,24 @@ class WelcomeDialog extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Aathiksh AutoMart",
+                          Text(
+                            languageProvider.translate(
+                              "Aathiksh AutoMart",
+                              "ஆத்திக்ஷ் ஆட்டோமார்ட்",
+                            ),
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              fontSize: 18,
+                              fontSize: isMobile
+                                  ? (languageProvider.isTamil ? 8 : 16)
+                                  : (languageProvider.isTamil ? 14 : 16),
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             languageProvider.translate(
                               "The Precision of Pre-Owned",
-                              "பழையவற்றின் துல்லியம்",
+                              "கார்களின் துல்லியம்",
                             ),
                             style: const TextStyle(
                               color: Colors.white70,
@@ -101,72 +107,95 @@ class WelcomeDialog extends StatelessWidget {
             const SizedBox(height: 18),
 
             // ====== TITLE ======
-            Text(
-              languageProvider.translate(
-                "Welcome to Aathiksh AutoMart",
-                "ஆத்திக்ஷ் ஆட்டோமார்ட்டுக்கு வரவேற்கிறோம்",
-              ),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+            // Text(
+            //   languageProvider.translate(
+            //     "Aathiksh AutoMart",
+            //     "ஆத்திக்ஷ் ஆட்டோமார்ட்",
+            //   ),
+            //   style: const TextStyle(
+            //     color: Colors.white,
+            //     fontSize: 22,
+            //     fontWeight: FontWeight.w900,
+            //   ),
+            // ),
 
-            const SizedBox(height: 6),
+            // const SizedBox(height: 6),
 
-            Text(
-              languageProvider.translate(
-                "Smart Insights • AI Decisions • Business Intelligence",
-                "ஸ்மார்ட் நுண்ணறிவுகள் • AI முடிவுகள் • வணிக நுண்ணறிவு",
-              ),
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.85),
-                fontSize: 13,
-              ),
-            ),
+            // Text(
+            //   languageProvider.translate(
+            //     "Smart Insights • AI Decisions • Business Intelligence",
+            //     "ஸ்மார்ட் நுண்ணறிவுகள் • AI முடிவுகள் • வணிக நுண்ணறிவு",
+            //   ),
+            //   style: TextStyle(
+            //     color: Colors.white.withOpacity(0.85),
+            //     fontSize: 13,
+            //   ),
+            // ),
 
-            const SizedBox(height: 22),
+            // const SizedBox(height: 22),
 
             // ====== VERTICAL FEATURE STACK ======
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18),
               child: Column(
                 children: [
-                  _featureTile(
-                    Icons.analytics_outlined,
+                  Text(
                     languageProvider.translate(
-                      "AI-Powered Vehicle Analysis",
-                      "AI-இயங்கும் வாகன பகுப்பாய்வு",
+                      "Welcome Mr.Palanikumar",
+                      "திரு. பழனிகுமார் அவர்களை வரவேற்கிறோம்.",
                     ),
-                    languageProvider.translate(
-                      "Upload images — get instant quality & price intelligence",
-                      "படங்களை பதிவேற்றவும் — உடனடி தரம் மற்றும் விலை நுண்ணறிவைப் பெறுங்கள்",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: isMobile
+                          ? (languageProvider.isTamil ? 8 : 16)
+                          : (languageProvider.isTamil ? 14 : 16),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _featureTile(
+                    context,
+                    languageProvider,
                     Icons.trending_up_rounded,
                     languageProvider.translate(
-                      "Market Intelligence Dashboard",
-                      "சந்தை நுண்ணறிவு டாஷ்போர்டு",
+                      "Latest Car Trends",
+                      "சமீபத்திய கார் போக்குகள்",
                     ),
                     languageProvider.translate(
-                      "Demand signals, pricing trends & dealer insights",
-                      "தேவை சமிக்ஞைகள், விலை போக்குகள் மற்றும் விற்பனையாளர் நுண்ணறிவுகள்",
+                      "Stay updated with the latest automotive trends and market insights",
+                      "சமீபத்திய வாகன போக்குகள் மற்றும் சந்தை நுண்ணறிவுகளுடன் புதுப்பிக்கப்பட்டு இருங்கள்",
                     ),
+                    '/trends',
                   ),
                   const SizedBox(height: 10),
                   _featureTile(
-                    Icons.inventory_2_outlined,
+                    context,
+                    languageProvider,
+                    Icons.directions_car,
                     languageProvider.translate(
-                      "Smart Inventory Tracking",
-                      "ஸ்மார்ட் சரக்கு கண்காணிப்பு",
+                      "Latest Car in Market",
+                      "சந்தையில் சமீபத்திய கார்",
                     ),
                     languageProvider.translate(
-                      "Lifecycle status & confidence scoring for every car",
-                      "ஒவ்வொரு காருக்கும் வாழ்க்கைச் சுழற்சி நிலை மற்றும் நம்பிக்கை மதிப்பெண்",
+                      "Discover the newest car launches and market arrivals",
+                      "புதிய கார் வெளியீடுகள் மற்றும் சந்தை வருகைகளைக் கண்டறியவும்",
                     ),
+                    '/car-launches',
+                  ),
+                  const SizedBox(height: 10),
+                  _featureTile(
+                    context,
+                    languageProvider,
+                    Icons.analytics_outlined,
+                    languageProvider.translate(
+                      "Analyze New Car",
+                      "புதிய காரை பகுப்பாய்வு செய்ய",
+                    ),
+                    languageProvider.translate(
+                      "Upload car images and get instant AI-powered analysis",
+                      "கார் படங்களை பதிவேற்றி உடனடி பகுப்பாய்வைப் பெறுங்கள்",
+                    ),
+                    '/analyze',
                   ),
                 ],
               ),
@@ -180,9 +209,15 @@ class WelcomeDialog extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.go('/dashboard');
+                  onPressed: () async {
+                    // Clear welcome dialog flag before navigation
+                    final authProvider =
+                        Provider.of<AuthProvider>(context, listen: false);
+                    await authProvider.clearWelcomeDialogFlag();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      context.go('/dashboard');
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -205,6 +240,9 @@ class WelcomeDialog extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(
+              height: 10,
+            )
           ],
         ),
       ),
@@ -212,50 +250,73 @@ class WelcomeDialog extends StatelessWidget {
   }
 
   Widget _featureTile(
+    BuildContext context,
+    LanguageProvider languageProvider,
     IconData icon,
     String title,
     String subtitle,
+    String route,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white24),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: () async {
+        // Clear welcome dialog flag before navigation
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        await authProvider.clearWelcomeDialogFlag();
+        if (context.mounted) {
+          Navigator.pop(context);
+          context.go(route);
+        }
+      },
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.18),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
-                    )),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.88),
-                    fontSize: 12,
-                    height: 1.2,
+                      fontSize: languageProvider.isTamil ? 11 : 15,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.88),
+                      fontSize: languageProvider.isTamil ? 8 : 12,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white.withOpacity(0.6),
+              size: 16,
+            ),
+          ],
+        ),
       ),
     );
   }

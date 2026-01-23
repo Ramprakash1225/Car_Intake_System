@@ -256,38 +256,38 @@ class CarDetailsScreen extends StatelessWidget {
                             height: MediaQuery.of(context).size.width < 768
                                 ? 200
                                 : 350,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.memory(
-                          car.imageBytes!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey.shade200,
-                              child: Center(
-                                child: Icon(
-                                  Icons.directions_car_outlined,
-                                  size: 64,
-                                  color: Colors.grey.shade400,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 4),
                                 ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.memory(
+                                car.imageBytes!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.grey.shade200,
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.directions_car_outlined,
+                                        size: 64,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -351,7 +351,7 @@ class CarDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  // Summary
+                  // Summary/Description (Compulsory) - with bullet marks
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -370,18 +370,459 @@ class CarDetailsScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          // Show description based on selected language
+                        _buildBulletSummary(
                           languageProvider.isTamil
                               ? (car.descriptionTa ?? car.description)
                               : (car.descriptionEn ?? car.description),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                          ),
+                          languageProvider,
                         ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  // All Analyzed Data - Show below Summary
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          languageProvider.translate(
+                            'Analyzed Data',
+                            'பகுப்பாய்வு செய்யப்பட்ட தரவு',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E3A8A),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isMobile = constraints.maxWidth < 768;
+                            final details = [
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                    'Make', 'தயாரிப்பு'),
+                                value: car.make,
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                    'Model', 'மாதிரி'),
+                                value: car.model,
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label:
+                                    languageProvider.translate('Year', 'ஆண்டு'),
+                                value: car.year.toString(),
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                  'Odometer Reading',
+                                  'ஓடோமீட்டர் வாசிப்பு',
+                                ),
+                                value:
+                                    '${car.odometerReading.toString().replaceAllMapped(
+                                          RegExp(
+                                              r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                          (Match m) => '${m[1]},',
+                                        )} km',
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                  'Exterior Condition',
+                                  'வெளிப்புற நிலை',
+                                ),
+                                value: car.exteriorCondition,
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                  'Interior Condition',
+                                  'உட்புற நிலை',
+                                ),
+                                value: car.interiorCondition,
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                  'Damage Details',
+                                  'சேதம் விவரங்கள்',
+                                ),
+                                value: car.damageDetails,
+                              ),
+                              const SizedBox(height: 8),
+                              _DetailRow(
+                                label: languageProvider.translate(
+                                  'Tyre Condition',
+                                  'டயர் நிலை',
+                                ),
+                                value: car.tyreCondition,
+                              ),
+                              if (car.confidenceScore != null) ...[
+                                const SizedBox(height: 8),
+                                _DetailRow(
+                                  label: languageProvider.translate(
+                                    'Confidence Score',
+                                    'நம்பிக்கை மதிப்பெண்',
+                                  ),
+                                  value:
+                                      '${car.confidenceScore!.toStringAsFixed(1)}%',
+                                ),
+                              ],
+                              if (car.carbonFootprint.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                _DetailRow(
+                                  label: languageProvider.translate(
+                                    'Carbon Footprint',
+                                    'கார்பன் பாதச்சுவடு',
+                                  ),
+                                  value: car.carbonFootprint,
+                                ),
+                              ],
+                              if (car.greenRating.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                _DetailRow(
+                                  label: languageProvider.translate(
+                                    'Green Rating',
+                                    'பசுமை மதிப்பீடு',
+                                  ),
+                                  value: car.greenRating,
+                                ),
+                              ],
+                            ];
+
+                            return isMobile
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: details,
+                                  )
+                                : Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: details
+                                              .take((details.length / 2).ceil())
+                                              .toList(),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 32),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: details
+                                              .skip((details.length / 2).ceil())
+                                              .toList(),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Market Demand, Purchase Recommendation, and Environmental & Social Measures
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isMobile = constraints.maxWidth < 768;
+
+                      if (isMobile) {
+                        // Mobile: Stack vertically
+                        return Column(
+                          children: [
+                            // Market Demand
+                            if (car.demand != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border:
+                                      Border.all(color: Colors.blue.shade200),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.trending_up,
+                                          color: Colors.blue.shade700,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          languageProvider.translate(
+                                            'Market Demand',
+                                            'சந்தை தேவை',
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue.shade900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      car.demand!,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            // Purchase Recommendation
+                            if (car.purchaseRecommendation != null) ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: car.purchaseRecommendation!
+                                          .toLowerCase()
+                                          .contains('purchase')
+                                      ? Colors.green.shade50
+                                      : Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: car.purchaseRecommendation!
+                                            .toLowerCase()
+                                            .contains('purchase')
+                                        ? Colors.green.shade200
+                                        : Colors.red.shade200,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          car.purchaseRecommendation!
+                                                  .toLowerCase()
+                                                  .contains('purchase')
+                                              ? Icons.check_circle
+                                              : Icons.cancel,
+                                          color: car.purchaseRecommendation!
+                                                  .toLowerCase()
+                                                  .contains('purchase')
+                                              ? Colors.green.shade700
+                                              : Colors.red.shade700,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          languageProvider.translate(
+                                            'Recommendation',
+                                            'பரிந்துரை',
+                                          ),
+                                          maxLines: 1,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: car.purchaseRecommendation!
+                                                    .toLowerCase()
+                                                    .contains('purchase')
+                                                ? Colors.green.shade900
+                                                : Colors.red.shade900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      car.purchaseRecommendation!,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: car.purchaseRecommendation!
+                                                .toLowerCase()
+                                                .contains('purchase')
+                                            ? Colors.green.shade700
+                                            : Colors.red.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ],
+                        );
+                      } else {
+                        // Desktop: Horizontal layout
+                        if (car.demand != null ||
+                            car.purchaseRecommendation != null) {
+                          return Row(
+                            children: [
+                              // Market Demand
+                              if (car.demand != null)
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: Colors.blue.shade200),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.trending_up,
+                                              color: Colors.blue.shade700,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              languageProvider.translate(
+                                                'Market Demand',
+                                                'சந்தை தேவை',
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blue.shade900,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          car.demand!,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.blue.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              if (car.demand != null &&
+                                  car.purchaseRecommendation != null)
+                                const SizedBox(width: 16),
+                              // Purchase Recommendation
+                              if (car.purchaseRecommendation != null)
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: car.purchaseRecommendation!
+                                              .toLowerCase()
+                                              .contains('purchase')
+                                          ? Colors.green.shade50
+                                          : Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: car.purchaseRecommendation!
+                                                .toLowerCase()
+                                                .contains('purchase')
+                                            ? Colors.green.shade200
+                                            : Colors.red.shade200,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              car.purchaseRecommendation!
+                                                      .toLowerCase()
+                                                      .contains('purchase')
+                                                  ? Icons.check_circle
+                                                  : Icons.cancel,
+                                              color: car.purchaseRecommendation!
+                                                      .toLowerCase()
+                                                      .contains('purchase')
+                                                  ? Colors.green.shade700
+                                                  : Colors.red.shade700,
+                                              size: 20,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              languageProvider.translate(
+                                                'Recommendation',
+                                                'பரிந்துரை',
+                                              ),
+                                              maxLines: 1,
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: car
+                                                        .purchaseRecommendation!
+                                                        .toLowerCase()
+                                                        .contains('purchase')
+                                                    ? Colors.green.shade900
+                                                    : Colors.red.shade900,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          car.purchaseRecommendation!,
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            color: car.purchaseRecommendation!
+                                                    .toLowerCase()
+                                                    .contains('purchase')
+                                                ? Colors.green.shade700
+                                                : Colors.red.shade700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        } else {
+                          return const SizedBox.shrink();
+                        }
+                      }
+                    },
                   ),
                   const SizedBox(height: 16),
                   // Additional Information
@@ -419,10 +860,10 @@ class CarDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  // Sustainability Metrics
+                  // Environmental & Social Measures
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.green.shade50,
                       borderRadius: BorderRadius.circular(12),
@@ -441,96 +882,47 @@ class CarDetailsScreen extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               languageProvider.translate(
-                                'Sustainability Metrics',
-                                'நிலைத்தன்மை அளவீடுகள்',
+                                'Environmental & Social Measures',
+                                'சுற்றுச்சூழல் & சமூக நடவடிக்கைகள்',
                               ),
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green.shade900,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 8),
                         Row(
                           children: [
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    languageProvider.translate(
-                                      'Sustainability Score',
-                                      'நிலைத்தன்மை மதிப்பெண்',
+                              child: Center(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      languageProvider.translate(
+                                        'Eco Score',
+                                        'சுற்றுச்சூழல் மதிப்பெண்',
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                      textAlign: TextAlign.center,
                                     ),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade700,
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      '${car.sustainabilityScore.toStringAsFixed(1)}/100',
+                                      style: TextStyle(
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green.shade700,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '${car.sustainabilityScore.toStringAsFixed(1)}/100',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    languageProvider.translate(
-                                      'Carbon Footprint',
-                                      'கார்பன் பாதச்சுவடு',
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    car.carbonFootprint,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    languageProvider.translate(
-                                      'Green Rating',
-                                      'பசுமை மதிப்பீடு',
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    car.greenRating,
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green.shade700,
-                                    ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -538,105 +930,54 @@ class CarDetailsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Car Details
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isMobile = constraints.maxWidth < 768;
-                      final details = [
-                        _DetailRow(
-                          label:
-                              languageProvider.translate('Make', 'தயாரிப்பு'),
-                          value: car.make,
+                  const SizedBox(height: 16),
+                  // Status Tab
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Colors.blue.shade200,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              car.status == CarStatus.pending
+                                  ? Icons.access_time
+                                  : Icons.check_circle,
+                              color: Colors.blue.shade700,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              languageProvider.translate(
+                                'Status',
+                                'நிலை',
+                              ),
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade900,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate('Year', 'ஆண்டு'),
-                          value: car.year.toString(),
+                        const SizedBox(height: 12),
+                        _StatusDropdown(
+                          car: car,
+                          carProvider: carProvider,
+                          languageProvider: languageProvider,
                         ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate('Status', 'நிலை'),
-                          value: car.statusText,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate(
-                            'Exterior Condition',
-                            'வெளிப்புற நிலை',
-                          ),
-                          value: car.exteriorCondition,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate(
-                            'Interior Condition',
-                            'உட்புற நிலை',
-                          ),
-                          value: car.interiorCondition,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate(
-                            'Damage Details',
-                            'சேதம் விவரங்கள்',
-                          ),
-                          value: car.damageDetails,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate(
-                            'Tyre Condition',
-                            'டயர் நிலை',
-                          ),
-                          value: car.tyreCondition,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate('Model', 'மாதிரி'),
-                          value: car.model,
-                        ),
-                        const SizedBox(height: 8),
-                        _DetailRow(
-                          label: languageProvider.translate(
-                            'Odometer Reading',
-                            'ஓடோமீட்டர் வாசிப்பு',
-                          ),
-                          value:
-                              '${car.odometerReading.toString().replaceAllMapped(
-                            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                            (Match m) => '${m[1]},',
-                          )} km',
-                        ),
-                      ];
-                      
-                      return isMobile
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: details,
-                            )
-                          : Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: details.take(7).toList(),
-                                  ),
-                                ),
-                                const SizedBox(width: 32),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: details.skip(7).toList(),
-                                  ),
-                                ),
-                              ],
-                            );
-                    },
+                      ],
+                    ),
                   ),
+
                   const SizedBox(height: 24),
                 ],
               ),
@@ -685,6 +1026,269 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
+class _StatusDropdown extends StatefulWidget {
+  final Car car;
+  final CarProvider carProvider;
+  final LanguageProvider languageProvider;
+
+  const _StatusDropdown({
+    required this.car,
+    required this.carProvider,
+    required this.languageProvider,
+  });
+
+  @override
+  State<_StatusDropdown> createState() => _StatusDropdownState();
+}
+
+class _StatusDropdownState extends State<_StatusDropdown> {
+  late CarStatus _selectedStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedStatus = widget.car.status;
+  }
+
+  String _getStatusText(CarStatus status) {
+    switch (status) {
+      case CarStatus.pending:
+        return widget.languageProvider.translate('Pending', 'நிலுவையில்');
+      case CarStatus.approved:
+        return widget.languageProvider
+            .translate('Approved', 'அனுமதிக்கப்பட்டது');
+      case CarStatus.rejected:
+        return widget.languageProvider
+            .translate('Rejected', 'நிராகரிக்கப்பட்டது');
+    }
+  }
+
+  Color _getStatusColor(CarStatus status) {
+    switch (status) {
+      case CarStatus.pending:
+        return Colors.amber.shade800;
+      case CarStatus.approved:
+        return Colors.green.shade800;
+      case CarStatus.rejected:
+        return Colors.red.shade800;
+    }
+  }
+
+  Color _getStatusBgColor(CarStatus status) {
+    switch (status) {
+      case CarStatus.pending:
+        return Colors.amber.shade100;
+      case CarStatus.approved:
+        return Colors.green.shade100;
+      case CarStatus.rejected:
+        return Colors.red.shade100;
+    }
+  }
+
+  IconData _getStatusIcon(CarStatus status) {
+    switch (status) {
+      case CarStatus.pending:
+        return Icons.access_time;
+      case CarStatus.approved:
+        return Icons.check_circle;
+      case CarStatus.rejected:
+        return Icons.cancel;
+    }
+  }
+
+  Future<void> _updateStatus(CarStatus newStatus) async {
+    if (newStatus == _selectedStatus) return;
+
+    setState(() {
+      _selectedStatus = newStatus;
+    });
+
+    // Create updated car with new status
+    final updatedCar = Car(
+      id: widget.car.id,
+      make: widget.car.make,
+      model: widget.car.model,
+      year: widget.car.year,
+      description: widget.car.description,
+      descriptionEn: widget.car.descriptionEn,
+      descriptionTa: widget.car.descriptionTa,
+      sustainabilityScore: widget.car.sustainabilityScore,
+      status: newStatus,
+      odometerReading: widget.car.odometerReading,
+      exteriorCondition: widget.car.exteriorCondition,
+      interiorCondition: widget.car.interiorCondition,
+      damageDetails: widget.car.damageDetails,
+      tyreCondition: widget.car.tyreCondition,
+      carbonFootprint: widget.car.carbonFootprint,
+      greenRating: widget.car.greenRating,
+      additionalInfo: widget.car.additionalInfo,
+      imageUrl: widget.car.imageUrl,
+      imageBytes: widget.car.imageBytes,
+      allImageBytes: widget.car.allImageBytes,
+      confidenceScore: widget.car.confidenceScore,
+      demand: widget.car.demand,
+      purchaseRecommendation: widget.car.purchaseRecommendation,
+    );
+
+    await widget.carProvider.updateCar(updatedCar);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.languageProvider.translate(
+              'Status updated successfully',
+              'நிலை வெற்றிகரமாக புதுப்பிக்கப்பட்டது',
+            ),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      
+      // Navigate to approved tab if status is approved
+      if (newStatus == CarStatus.approved) {
+        context.go('/inventory?tab=approved');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 12,
+      ),
+      decoration: BoxDecoration(
+        color: _getStatusBgColor(_selectedStatus),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _getStatusColor(_selectedStatus).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _getStatusIcon(_selectedStatus),
+            color: _getStatusColor(_selectedStatus),
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<CarStatus>(
+                value: _selectedStatus,
+                isExpanded: true,
+                icon: Icon(
+                  Icons.arrow_drop_down,
+                  color: _getStatusColor(_selectedStatus),
+                ),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: _getStatusColor(_selectedStatus),
+                ),
+                dropdownColor: Colors.white,
+                items: CarStatus.values
+                    .where((status) => status != CarStatus.rejected)
+                    .map((status) {
+                  return DropdownMenuItem<CarStatus>(
+                    value: status,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _getStatusIcon(status),
+                          color: _getStatusColor(status),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(_getStatusText(status)),
+                      ],
+                    ),
+                  );
+                }).toList(),
+                onChanged: (CarStatus? newStatus) {
+                  if (newStatus != null) {
+                    _updateStatus(newStatus);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _buildBulletSummary(
+  String text,
+  LanguageProvider languageProvider,
+) {
+  // Split text into sentences or by periods
+  final sentences = text
+      .split(RegExp(r'[.!?]\s+'))
+      .where((s) => s.trim().isNotEmpty)
+      .toList();
+
+  // Group sentences into pairs (2 lines per bullet)
+  final List<List<String>> bulletGroups = [];
+  for (int i = 0; i < sentences.length; i += 2) {
+    if (i + 1 < sentences.length) {
+      bulletGroups.add([sentences[i], sentences[i + 1]]);
+    } else {
+      bulletGroups.add([sentences[i]]);
+    }
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: bulletGroups.map((group) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 6, right: 8),
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade700,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: group.map((sentence) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      sentence.trim(),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                        height: 1.5,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList(),
+  );
+}
+
 void _showDeleteDialog(BuildContext context, Car car, CarProvider carProvider,
     LanguageProvider languageProvider) {
   showDialog(
@@ -717,20 +1321,20 @@ void _showDeleteDialog(BuildContext context, Car car, CarProvider carProvider,
 
               // Navigate to inventory screen
               if (context.mounted) {
-              context.go('/inventory');
+                context.go('/inventory');
 
                 // Show success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    languageProvider.translate(
-                      'Car deleted successfully',
-                      'கார் வெற்றிகரமாக நீக்கப்பட்டது',
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      languageProvider.translate(
+                        'Car deleted successfully',
+                        'கார் வெற்றிகரமாக நீக்கப்பட்டது',
+                      ),
                     ),
+                    backgroundColor: Colors.green,
                   ),
-                  backgroundColor: Colors.green,
-                ),
-              );
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -966,7 +1570,7 @@ void _showEditDialog(BuildContext context, Car car, CarProvider carProvider,
                         car.allImageBytes, // Preserve all images when editing
                     confidenceScore: car.confidenceScore,
                   );
-                  
+
                   // Close the dialog first
                   Navigator.of(dialogContext).pop();
 
@@ -974,37 +1578,37 @@ void _showEditDialog(BuildContext context, Car car, CarProvider carProvider,
                   // Use post-frame callback to ensure dialog is completely removed
                   SchedulerBinding.instance.addPostFrameCallback((_) async {
                     // Update car after dialog is fully closed
-                  await carProvider.updateCar(updatedCar);
-                  
+                    await carProvider.updateCar(updatedCar);
+
                     // Dispose controllers after dialog is fully closed
-                  makeController.dispose();
-                  modelController.dispose();
-                  yearController.dispose();
-                  descriptionController.dispose();
-                  odometerController.dispose();
-                  exteriorController.dispose();
-                  interiorController.dispose();
-                  damageController.dispose();
-                  tyreController.dispose();
-                  additionalInfoController.dispose();
-                  
+                    makeController.dispose();
+                    modelController.dispose();
+                    yearController.dispose();
+                    descriptionController.dispose();
+                    odometerController.dispose();
+                    exteriorController.dispose();
+                    interiorController.dispose();
+                    damageController.dispose();
+                    tyreController.dispose();
+                    additionalInfoController.dispose();
+
                     // Navigate to inventory screen
                     if (context.mounted) {
-                  context.go('/inventory');
+                      context.go('/inventory');
 
                       // Show success message
                       if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        languageProvider.translate(
-                          'Car updated successfully',
-                          'கார் வெற்றிகரமாக புதுப்பிக்கப்பட்டது',
-                        ),
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              languageProvider.translate(
+                                'Car updated successfully',
+                                'கார் வெற்றிகரமாக புதுப்பிக்கப்பட்டது',
+                              ),
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       }
                     }
                   });

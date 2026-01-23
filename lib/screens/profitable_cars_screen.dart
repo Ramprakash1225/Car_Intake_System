@@ -4,9 +4,9 @@ import '../providers/profitable_cars_provider.dart';
 import '../providers/language_provider.dart';
 import '../widgets/app_header.dart';
 import '../widgets/ai_disclaimer.dart';
-import '../widgets/feature_image.dart';
+import '../widgets/modern_loader.dart';
 import '../utils/language_helper.dart';
-import '../utils/image_helper.dart';
+import 'dart:ui';
 
 class ProfitableCarsScreen extends StatefulWidget {
   const ProfitableCarsScreen({super.key});
@@ -176,8 +176,20 @@ class _ProfitableCarsScreenState extends State<ProfitableCarsScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => profitableCarsProvider
-                                  .loadProfitableCars(forceRefresh: true),
+                              onPressed: () async {
+                                showModernLoader(
+                                  context,
+                                  message: languageProvider.translate(
+                                    'Refreshing profitable cars...',
+                                    'லாபகரமான கார்களை புதுப்பிக்கிறது...',
+                                  ),
+                                );
+                                await profitableCarsProvider
+                                    .loadProfitableCars(forceRefresh: true);
+                                if (context.mounted) {
+                                  hideModernLoader(context);
+                                }
+                              },
                               icon: const Icon(Icons.refresh,
                                   color: Colors.white),
                               tooltip: languageProvider.translate(
@@ -427,7 +439,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _ProfitableCarCard extends StatelessWidget {
+class _ProfitableCarCard extends StatefulWidget {
   final Map<String, dynamic> car;
   final int index;
   final bool isExpanded;
@@ -441,214 +453,801 @@ class _ProfitableCarCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final imageUrl = car['imageUrl']?.toString() ?? '';
-    final isMobile = MediaQuery.of(context).size.width < 768;
+  State<_ProfitableCarCard> createState() => _ProfitableCarCardState();
+}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      height: 320,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image - Half width (if available)
-          if (imageUrl.isNotEmpty)
-            Expanded(
+class _ProfitableCarCardState extends State<_ProfitableCarCard> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _elevationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _elevationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  // Helper function to translate traction period
+  String _translateTractionPeriod(BuildContext context, String period) {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+    if (!languageProvider.isTamil) {
+      return period;
+    }
+
+    final periodLower = period.toLowerCase().trim();
+    if (periodLower.contains('3') && periodLower.contains('year')) {
+      return '3 ஆண்டுகள்';
+    } else if (periodLower.contains('5') && periodLower.contains('year')) {
+      return '5 ஆண்டுகள்';
+    } else if (periodLower.contains('10') && periodLower.contains('year')) {
+      return '10 ஆண்டுகள்';
+    }
+    return period; // Return as-is if not recognized
+  }
+
+  // Helper function to translate resale value
+  String _translateResaleValue(BuildContext context, String value) {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+    if (!languageProvider.isTamil) {
+      return value;
+    }
+
+    final valueLower = value.toLowerCase().trim();
+    switch (valueLower) {
+      case 'excellent':
+        return 'சிறந்த';
+      case 'high':
+        return 'உயர்';
+      case 'medium':
+        return 'நடுத்தர';
+      case 'low':
+        return 'குறைந்த';
+      default:
+        return value;
+    }
+  }
+
+  // Helper function to translate maintenance cost
+  String _translateMaintenanceCost(BuildContext context, String cost) {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+    if (!languageProvider.isTamil) {
+      return cost;
+    }
+
+    final costLower = cost.toLowerCase().trim();
+    switch (costLower) {
+      case 'low':
+        return 'குறைந்த';
+      case 'medium':
+        return 'நடுத்தர';
+      case 'high':
+        return 'உயர்';
+      default:
+        return cost;
+    }
+  }
+
+  // Helper function to translate sales speed
+  String _translateSalesSpeed(BuildContext context, String speed) {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+    if (!languageProvider.isTamil) {
+      return speed;
+    }
+
+    final speedLower = speed.toLowerCase().trim();
+    switch (speedLower) {
+      case 'very fast':
+        return 'மிக வேகமான';
+      case 'fast':
+        return 'வேகமான';
+      case 'medium':
+        return 'நடுத்தர';
+      case 'slow':
+        return 'மெதுவான';
+      default:
+        return speed;
+    }
+  }
+
+  // Helper function to extract language-specific content from bilingual sales data
+  String _translateSalesData(BuildContext context, String salesData) {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
+    if (!languageProvider.isTamil) {
+      // For English, return the English part (before /) or the whole string
+      if (salesData.contains(' / ')) {
+        return salesData.split(' / ')[0].trim();
+      }
+      return salesData;
+    }
+
+    // For Tamil, return the Tamil part (after /) or the whole string if no separator
+    if (salesData.contains(' / ')) {
+      final parts = salesData.split(' / ');
+      if (parts.length > 1) {
+        return parts[1].trim();
+      }
+    }
+    // If no separator, check if it contains Tamil characters
+    if (salesData.contains(RegExp(r'[\u0B80-\u0BFF]'))) {
+      return salesData; // Already in Tamil
+    }
+    return salesData;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 768;
+    
+    // Amber/Gold gradient for profitable cars
+    final gradientSets = [
+      [Colors.amber.shade500, Colors.amber.shade800, Colors.orange.shade700],
+      [Colors.orange.shade500, Colors.orange.shade800, Colors.deepOrange.shade700],
+    ];
+    final colors = gradientSets[widget.index % gradientSets.length];
+
+    return MouseRegion(
+      onEnter: (_) => _animationController.forward(),
+      onExit: (_) => _animationController.reverse(),
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: Container(
+              margin: EdgeInsets.only(bottom: isMobile ? 24 : 32),
+              height: isMobile ? null : 360,
+              constraints: isMobile ? null : const BoxConstraints(minHeight: 360),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors[0].withValues(alpha: 0.3 * _elevationAnimation.value),
+                    blurRadius: 20 + (10 * _elevationAnimation.value),
+                    offset: Offset(0, 8 + (4 * _elevationAnimation.value)),
+                    spreadRadius: 2 * _elevationAnimation.value,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
               child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-              ),
-                child: FeatureImage(
-                  imageUrl: imageUrl,
-                  fallbackAsset: ImageHelper.profitableCarsFallback,
-                width: double.infinity,
-                  height: double.infinity,
-                      ),
-                    ),
-            ),
-          // Content - Half width
-          Expanded(
-            child: Padding(
-            padding: EdgeInsets.all(isMobile ? 16 : 20),
-              child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Brand Model | Traction Period
-                Text(
-                  '### ${car['brand']} ${car['model']} | ${car['tractionPeriod']}',
-                  style: TextStyle(
-                    fontSize: isMobile ? 18 : 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade900,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Overview (2 crisp lines)
-                Text(
-                  LanguageHelper.getAIContent(context, car, 'overview'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade700,
-                    height: 1.6,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Sales Data
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.analytics,
-                          color: Colors.blue.shade700, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        car['salesData']?.toString() ??
-                            Provider.of<LanguageProvider>(context)
-                                .translate('Sales: N/A', 'விற்பனை: N/A'),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Key Metrics
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _MetricItem(
-                        label: Provider.of<LanguageProvider>(context)
-                            .translate('Resale Value:', 'மறுவிற்பனை மதிப்பு:'),
-                        value: car['resaleValue']?.toString() ?? 'High',
-                      ),
-                      const SizedBox(height: 8),
-                      _MetricItem(
-                        label: Provider.of<LanguageProvider>(context).translate(
-                            'Maintenance Cost:', 'பராமரிப்புச் செலவு:'),
-                        value: car['maintenanceCost']?.toString() ?? 'Medium',
-                      ),
-                      const SizedBox(height: 8),
-                      _MetricItem(
-                        label: Provider.of<LanguageProvider>(context)
-                            .translate('Sales Speed:', 'விற்பனை வேகம்:'),
-                        value: car['salesSpeed']?.toString() ?? 'Fast',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Read More Button
-                if (!isExpanded)
-                  TextButton.icon(
-                    onPressed: onToggle,
-                    icon: const Icon(Icons.arrow_downward, size: 18),
-                    label: Text(
-                      Provider.of<LanguageProvider>(context)
-                          .translate('Read More', 'மேலும் படிக்க'),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                    ),
-                  )
-                else
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Detailed Insight (6 lines)
-                      Text(
-                        LanguageHelper.getAIContent(
-                            context, car, 'detailedInsight'),
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade800,
-                          height: 1.7,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Context Label
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.blue.shade200),
-                        ),
-                        child: Text(
-                          '[${LanguageHelper.getAIContent(context, car, 'contextLabel')}]',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextButton.icon(
-                        onPressed: onToggle,
-                        icon: const Icon(Icons.arrow_upward, size: 18),
-                        label: Text(
-                          Provider.of<LanguageProvider>(context)
-                              .translate('Read Less', 'குறைவாக படிக்க'),
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  color: Colors.white,
+                  child: isMobile
+                      ? _buildMobileLayout(context, colors)
+                      : _buildDesktopLayout(context, colors),
                 ),
               ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
+
+  Widget _buildDesktopLayout(BuildContext context, List<Color> colors) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _DottedPatternPainter(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      dotRadius: 3,
+                      spacing: 20,
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withValues(alpha: 0.1),
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.1),
+                        ],
+                        stops: const [0.0, 0.3, 0.7, 1.0],
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            blurRadius: 30,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.attach_money_rounded,
+                        size: 72,
+                        color: Colors.white.withValues(alpha: 0.95),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          blurRadius: 15,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.trending_up_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            _translateTractionPeriod(
+                              context,
+                              widget.car['tractionPeriod']?.toString() ?? '3 Years',
+                            ),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white,
+                  Colors.grey.shade50,
+                ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: colors[0].withValues(alpha: 0.2),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      '${widget.car['brand']} ${widget.car['model']} | ${_translateTractionPeriod(context, widget.car['tractionPeriod']?.toString() ?? '3 Years')}',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.grey.shade900,
+                        height: 1.2,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey.shade200,
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Consumer<LanguageProvider>(
+                      builder: (context, languageProvider, _) {
+                        return Text(
+                      LanguageHelper.getAIContent(context, widget.car, 'overview'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                        height: 1.7,
+                        letterSpacing: 0.2,
+                      ),
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.blue.shade50,
+                          Colors.blue.shade100,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.blue.shade300,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.analytics_rounded,
+                            color: Colors.blue.shade700, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _translateSalesData(
+                              context,
+                              widget.car['salesData']?.toString() ??
+                                  Provider.of<LanguageProvider>(context)
+                                      .translate('Sales: N/A', 'விற்பனை: N/A'),
+                            ),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colors[0].withValues(alpha: 0.1),
+                          colors[1].withValues(alpha: 0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colors[0].withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _MetricItem(
+                          label: Provider.of<LanguageProvider>(context)
+                              .translate('Resale Value:', 'மறுவிற்பனை மதிப்பு:'),
+                          value: _translateResaleValue(
+                            context,
+                            widget.car['resaleValue']?.toString() ?? 'High',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _MetricItem(
+                          label: Provider.of<LanguageProvider>(context).translate(
+                              'Maintenance Cost:', 'பராமரிப்புச் செலவு:'),
+                          value: _translateMaintenanceCost(
+                            context,
+                            widget.car['maintenanceCost']?.toString() ?? 'Medium',
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _MetricItem(
+                          label: Provider.of<LanguageProvider>(context)
+                              .translate('Sales Speed:', 'விற்பனை வேகம்:'),
+                          value: _translateSalesSpeed(
+                            context,
+                            widget.car['salesSpeed']?.toString() ?? 'Fast',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!widget.isExpanded)
+                    _buildModernButton(
+                      context,
+                      'Read More',
+                      'மேலும் படிக்க',
+                      Icons.arrow_downward_rounded,
+                      widget.onToggle,
+                      colors[0],
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                colors[0].withValues(alpha: 0.1),
+                                colors[1].withValues(alpha: 0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: colors[0].withValues(alpha: 0.3),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Consumer<LanguageProvider>(
+                                builder: (context, languageProvider, _) {
+                                  return Text(
+                                LanguageHelper.getAIContent(
+                                    context, widget.car, 'detailedInsight'),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.grey.shade800,
+                                  height: 1.8,
+                                  letterSpacing: 0.1,
+                                ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              Consumer<LanguageProvider>(
+                                builder: (context, languageProvider, _) {
+                                  return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: colors[0].withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: colors[0].withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: Text(
+                                  '[${LanguageHelper.getAIContent(context, widget.car, 'contextLabel')}]',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: colors[0],
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildModernButton(
+                          context,
+                          'Read Less',
+                          'குறைவாக படிக்க',
+                          Icons.arrow_upward_rounded,
+                          widget.onToggle,
+                          colors[0],
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, List<Color> colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          height: 200,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _DottedPatternPainter(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    dotRadius: 2,
+                    spacing: 15,
+                  ),
+                ),
+              ),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Icon(
+                    Icons.attach_money_rounded,
+                    size: 56,
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    _translateTractionPeriod(
+                      context,
+                      widget.car['tractionPeriod']?.toString() ?? '3 Years',
+                    ),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${widget.car['brand']} ${widget.car['model']}',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade900,
+                  height: 1.3,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Consumer<LanguageProvider>(
+                builder: (context, languageProvider, _) {
+                  return Text(
+                LanguageHelper.getAIContent(context, widget.car, 'overview'),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.grey.shade700,
+                  height: 1.6,
+                ),
+                  );
+                },
+              ),
+              if (!widget.isExpanded) ...[
+                const SizedBox(height: 16),
+                _buildModernButton(
+                  context,
+                  'Read More',
+                  'மேலும் படிக்க',
+                  Icons.arrow_downward_rounded,
+                  widget.onToggle,
+                  colors[0],
+                ),
+              ] else ...[
+                const SizedBox(height: 16),
+                Consumer<LanguageProvider>(
+                  builder: (context, languageProvider, _) {
+                    return Text(
+                  LanguageHelper.getAIContent(
+                      context, widget.car, 'detailedInsight'),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade800,
+                    height: 1.7,
+                  ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildModernButton(
+                  context,
+                  'Read Less',
+                  'குறைவாக படிக்க',
+                  Icons.arrow_upward_rounded,
+                  widget.onToggle,
+                  colors[0],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernButton(
+    BuildContext context,
+    String enText,
+    String taText,
+    IconData icon,
+    VoidCallback onPressed,
+    Color color,
+  ) {
+    final languageProvider = Provider.of<LanguageProvider>(context);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color, color.withValues(alpha: 0.8)],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  languageProvider.translate(enText, taText),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Icon(icon, color: Colors.white, size: 22),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DottedPatternPainter extends CustomPainter {
+  final Color color;
+  final double dotRadius;
+  final double spacing;
+
+  _DottedPatternPainter({
+    required this.color,
+    required this.dotRadius,
+    required this.spacing,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), dotRadius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _MetricItem extends StatelessWidget {
