@@ -211,11 +211,6 @@ class AIService {
     };
   }
 
-  // static String get serviceAccount {
-  //   return dotenv.env['VERTEX_AI_SERVICE_ACCOUNT'] ??
-  //          'qumarionixbk@qumarionixbk.iam.gserviceaccount.com';
-  // }
-
   static Future<Map<String, String>> analyzeCarImages({
     required List<Uint8List> imageBytes,
     String? additionalInfo,
